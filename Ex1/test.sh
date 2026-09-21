@@ -1,6 +1,7 @@
 #!/bin/bash
 test_duration=300
 
+# Clean up previous test results
 # ssh root@192.168.122.168 "rm test_ex1/vmstat_*"
 # rm jmeter_res/results_*.csv
 
@@ -18,11 +19,11 @@ for rate in 100 300 500 700 900 1100; do
 
         sleep 10 # Wait a few seconds to ensure the server is fully up and running
 
-
         echo "Server is back online. Starting the command: $command"
         ssh root@192.168.122.168 "$command" &
         
         jmeter -n -t ./Test.jmx -l ./jmeter_res/results_${rate}_${i}.csv -Jrate=$rate -Jduration=$test_duration
         wait
     done
+    
 done
