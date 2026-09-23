@@ -10,7 +10,7 @@
     </TestPlan>
     <hashTree>
       <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Thread Group">
-        <intProp name="ThreadGroup.num_threads">100</intProp>
+        <intProp name="ThreadGroup.num_threads">70</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
         <stringProp name="ThreadGroup.duration">${__P(duration,60)}</stringProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">false</boolProp>
@@ -26,8 +26,8 @@
           <intProp name="InterleaveControl.style">1</intProp>
         </RandomController>
         <hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="HTTP Request 100kb">
-            <stringProp name="HTTPSampler.domain">192.168.122.168</stringProp>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="HTTP Request 100kb" enabled="true">
+            <stringProp name="HTTPSampler.domain">192.168.56.104</stringProp>
             <stringProp name="HTTPSampler.port">80</stringProp>
             <stringProp name="HTTPSampler.path">page_100k.html</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
@@ -39,8 +39,8 @@
             </elementProp>
           </HTTPSamplerProxy>
           <hashTree/>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="HTTP Request 500kb">
-            <stringProp name="HTTPSampler.domain">192.168.122.168</stringProp>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="HTTP Request 500kb" enabled="true">
+            <stringProp name="HTTPSampler.domain">192.168.56.104</stringProp>
             <stringProp name="HTTPSampler.port">80</stringProp>
             <stringProp name="HTTPSampler.path">page_500k.html</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
@@ -52,8 +52,8 @@
             </elementProp>
           </HTTPSamplerProxy>
           <hashTree/>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="HTTP Request 2mb">
-            <stringProp name="HTTPSampler.domain">192.168.122.168</stringProp>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="HTTP Request 2mb" enabled="true">
+            <stringProp name="HTTPSampler.domain">192.168.56.104</stringProp>
             <stringProp name="HTTPSampler.port">80</stringProp>
             <stringProp name="HTTPSampler.path">page_2m.html</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
@@ -65,8 +65,8 @@
             </elementProp>
           </HTTPSamplerProxy>
           <hashTree/>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="HTTP Request 1mb">
-            <stringProp name="HTTPSampler.domain">192.168.122.168</stringProp>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="HTTP Request 1mb" enabled="true">
+            <stringProp name="HTTPSampler.domain">192.168.56.104</stringProp>
             <stringProp name="HTTPSampler.port">80</stringProp>
             <stringProp name="HTTPSampler.path">page_1m.html</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
@@ -78,8 +78,8 @@
             </elementProp>
           </HTTPSamplerProxy>
           <hashTree/>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="HTTP Request 250kb">
-            <stringProp name="HTTPSampler.domain">192.168.122.168</stringProp>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="HTTP Request 250kb" enabled="true">
+            <stringProp name="HTTPSampler.domain">192.168.56.104</stringProp>
             <stringProp name="HTTPSampler.port">80</stringProp>
             <stringProp name="HTTPSampler.path">page_250k.html</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
@@ -91,8 +91,8 @@
             </elementProp>
           </HTTPSamplerProxy>
           <hashTree/>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="HTTP Request 750kb">
-            <stringProp name="HTTPSampler.domain">192.168.122.168</stringProp>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="HTTP Request 750kb" enabled="true">
+            <stringProp name="HTTPSampler.domain">192.168.56.104</stringProp>
             <stringProp name="HTTPSampler.port">80</stringProp>
             <stringProp name="HTTPSampler.path">page_750k.html</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
@@ -104,8 +104,8 @@
             </elementProp>
           </HTTPSamplerProxy>
           <hashTree/>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="HTTP Request 5m">
-            <stringProp name="HTTPSampler.domain">192.168.122.168</stringProp>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="HTTP Request 5m" enabled="true">
+            <stringProp name="HTTPSampler.domain">192.168.56.104</stringProp>
             <stringProp name="HTTPSampler.port">80</stringProp>
             <stringProp name="HTTPSampler.path">page_5m.html</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
