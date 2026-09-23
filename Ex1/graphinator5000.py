@@ -10,17 +10,30 @@ Schema dei nomi file supportato:
   - vmstat_<rate>.txt / vmstat_<rate>_<rep>.txt  (opzionale, output di 'vmstat -n 1')
 
 Uso:
-    python analyze_load_test.py --results-dir ./jmeter_temp_res --test-duration 300
-    python analyze_load_test.py --results-dir ./jmeter_temp_res --test-duration 300 --vmstat-dir ./vmstat_res
+    Imposta le variabili nella sezione CONFIGURAZIONE qui sotto, poi esegui:
+    python analyze_load_test.py
 """
 
 import re
 import glob
-import argparse
 from pathlib import Path
 
 import pandas as pd
 import matplotlib.pyplot as plt
+
+
+# ============================================================
+# CONFIGURAZIONE — modifica questi valori invece di passare
+# argomenti da terminale
+# ============================================================
+
+RESULTS_DIR = "./jmeter_res"      # cartella con i CSV di JMeter
+TEST_DURATION = 300                    # durata di ogni singolo test, in secondi
+OUTPUT_DIR = "./plots"                 # cartella dove salvare i grafici
+VMSTAT_DIR = None                      # cartella con i file vmstat_<rate>[_<rep>].txt
+                                        # (None per non generare i grafici di CPU/memoria/IO)
+
+# ============================================================
 
 
 def load_all_runs(results_dir, filename_pattern=r"results_(\d+)(?:_(\d+))?\.csv$"):
@@ -236,26 +249,4 @@ def main(results_dir, test_duration, output_dir, vmstat_dir=None):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Analisi risultati JMeter: Response Time, Throughput, Power vs Load."
-    )
-    parser.add_argument(
-        "--results-dir", default="./jmeter_temp_res",
-        help="Cartella con i CSV di JMeter (default: ./jmeter_temp_res)",
-    )
-    parser.add_argument(
-        "--test-duration", type=int, default=300,
-        help="Durata di ogni singolo test in secondi (default: 300)",
-    )
-    parser.add_argument(
-        "--output-dir", default="./plots",
-        help="Cartella dove salvare i grafici (default: ./plots)",
-    )
-    parser.add_argument(
-        "--vmstat-dir", default=None,
-        help="Cartella con i file 'vmstat_<rate>[_<rep>].txt' (opzionale: se omessa, "
-             "vengono generati solo i grafici JMeter senza quelli di CPU/memoria/IO)",
-    )
-    args = parser.parse_args()
-
-    main(args.results_dir, args.test_duration, args.output_dir, args.vmstat_dir)
+    main(RESULTS_DIR, TEST_DURATION, OUTPUT_DIR, VMSTAT_DIR)
