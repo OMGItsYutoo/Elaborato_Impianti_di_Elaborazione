@@ -9,8 +9,7 @@ ip_server=192.168.56.104
 #TODO:
 #MODIFICARE SCALE DEVONO ESSERE TUTTE NORMALIZZATE IN PERCENTUALE DI VMSTAT
 #AGGIUSTARE IL FATTO CHE FACCIO MEDIA METTENDO INSIEME TUTTI I FILE E FARE MEDIA DI MEDIE
-#partiva da 2500
-for rate in $(seq 17500 2500 50000); do
+for rate in $(seq 2500 2500 50000); do
 
     for i in {1..3}; do
         command="vmstat -n 1 $test_duration > test_ex1/vmstat_${rate}_${i}.txt"

@@ -30,8 +30,8 @@ import matplotlib.pyplot as plt
 RESULTS_DIR = "./jmeter_res"      # cartella con i CSV di JMeter
 TEST_DURATION = 300                    # durata di ogni singolo test, in secondi
 OUTPUT_DIR = "./plots"                 # cartella dove salvare i grafici
-VMSTAT_DIR = None                      # cartella con i file vmstat_<rate>[_<rep>].txt
-                                        # (None per non generare i grafici di CPU/memoria/IO)
+VMSTAT_DIR = "./test_ex1"              # cartella con i file vmstat_<rate>[_<rep>].txt
+                                    # (None per non generare i grafici di CPU/memoria/IO)
 
 # ============================================================
 
