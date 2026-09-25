@@ -1,47 +1,35 @@
 """
-Analisi dei risultati di un load test JMeter.
+Analisi avanzata dei risultati JMeter e metriche multi-variabile vmstat.
 
-Calcola Response Time, Throughput e Power in funzione del carico (rate),
-a partire da uno o più file CSV esportati da JMeter.
-
-Schema dei nomi file supportato:
-  - results_<rate>.csv            (una sola run per rate, rep implicita = 1)
-  - results_<rate>_<rep>.csv      (piu' repliche per rate)
-  - vmstat_<rate>.txt / vmstat_<rate>_<rep>.txt  (opzionale, output di 'vmstat -n 1')
-
-Uso:
-    Imposta le variabili nella sezione CONFIGURAZIONE qui sotto, poi esegui:
-    python analyze_load_test.py
+Caratteristiche:
+  - Media di medie per replica su tutte le metriche (JMeter e vmstat).
+  - Grafico CPU Stacked Area (100%): User, System, I/O Wait, Idle.
+  - Grafico Memoria Stacked Area (100%): Free, Buffers, Cache, Swap/Used.
+  - Grafico I/O Disco con valori reali in blocchi/s (scala naturale dinamica).
+  - Grafico Overhead di Sistema normalizzato (0-100% rispetto alla media max).
 """
 
-import re
 import glob
 from pathlib import Path
+import re
 
-import pandas as pd
 import matplotlib.pyplot as plt
-
+import pandas as pd
 
 # ============================================================
-# CONFIGURAZIONE — modifica questi valori invece di passare
-# argomenti da terminale
+# CONFIGURAZIONE
 # ============================================================
 
-RESULTS_DIR = "./jmeter_res"      # cartella con i CSV di JMeter
-TEST_DURATION = 300                    # durata di ogni singolo test, in secondi
-OUTPUT_DIR = "./plots"                 # cartella dove salvare i grafici
-VMSTAT_DIR = "./vmstat_results"              # cartella con i file vmstat_<rate>[_<rep>].txt
-                                    # (None per non generare i grafici di CPU/memoria/IO)
+RESULTS_DIR = "./jmeter_res"
+TEST_DURATION = 300
+OUTPUT_DIR = "./plots"
+VMSTAT_DIR = "./vmstat_results"
 
 # ============================================================
 
 
 def load_all_runs(results_dir, filename_pattern=r"results_(\d+)(?:_(\d+))?\.csv$"):
-    """
-    Carica tutti i CSV di risultati JMeter in results_dir e li concatena in un unico
-    DataFrame, taggando ogni riga con 'rate' (carico offerto) e 'rep' (replica,
-    default 1 se il nome file non specifica una replica).
-    """
+    """Carica i log CSV di JMeter taggando ciascuno con 'rate' e 'rep'."""
     filename_re = re.compile(filename_pattern)
     frames = []
 
@@ -49,7 +37,7 @@ def load_all_runs(results_dir, filename_pattern=r"results_(\d+)(?:_(\d+))?\.csv$
     for path in sorted(glob.glob(search_pattern)):
         match = filename_re.search(path)
         if not match:
-            print(f"[WARN] file ignorato (nome non conforme allo schema atteso): {path}")
+            print(f"[WARN] File JMeter ignorato: {path}")
             continue
 
         rate = int(match.group(1))
@@ -61,41 +49,25 @@ def load_all_runs(results_dir, filename_pattern=r"results_(\d+)(?:_(\d+))?\.csv$
         frames.append(df)
 
     if not frames:
-        raise FileNotFoundError(
-            f"Nessun file trovato in '{results_dir}' che rispetti lo schema "
-            f"'results_<rate>.csv' o 'results_<rate>_<rep>.csv'"
-        )
+        raise FileNotFoundError(f"Nessun file CSV trovato in '{results_dir}'")
 
     return pd.concat(frames, ignore_index=True)
 
 
 def aggregate_by_load(df, test_duration):
-    """
-    Calcola, per ogni livello di carico (rate), Response Time medio, Throughput
-    e Power, considerando solo le richieste completate con successo.
+    """Calcola Response Time, Throughput e Power con logica di media di medie."""
+    successes = df[df["success"] == True]  # noqa: E712
 
-    - response_time: media di 'elapsed' sulle richieste riuscite, per rate.
-    - throughput: richieste riuscite totali / (test_duration * numero di repliche
-      osservate per quel rate). Il numero di repliche viene dedotto dai dati stessi
-      (colonna 'rep'), cosi' funziona sia con 1 sola run per rate sia con piu' run.
-    - power: throughput / response_time (metrica di Raj Jain, utile per localizzare
-      la zona di miglior compromesso throughput/latenza, cioe' vicino al "ginocchio").
-    """
-    successes = df[df["success"] == True]  # noqa: E712 (confronto esplicito voluto)
+    # 1. Metriche per singola replica
+    per_run = successes.groupby(["rate", "rep"]).agg(
+        response_time=("elapsed", "mean"),
+        n_success=("success", "count"),
+    )
+    per_run["throughput"] = per_run["n_success"] / test_duration
+    per_run["power"] = per_run["throughput"] / per_run["response_time"]
 
-    n_reps = successes.groupby("rate")["rep"].nunique()
-    response_time = successes.groupby("rate")["elapsed"].mean()
-    n_success = successes.groupby("rate")["success"].count()
-
-    summary = pd.DataFrame({
-        "response_time": response_time,
-        "n_success": n_success,
-        "n_reps": n_reps,
-    })
-
-    summary["throughput"] = summary["n_success"] / (test_duration * summary["n_reps"])
-    summary["power"] = summary["throughput"] / summary["response_time"]
-
+    # 2. Media di medie per rate
+    summary = per_run.groupby("rate").mean()
     return summary.sort_index()
 
 
@@ -107,16 +79,7 @@ VMSTAT_COLUMNS = [
 
 
 def load_all_vmstat(vmstat_dir, filename_pattern=r"vmstat_(\d+)(?:_(\d+))?\.txt$", skip_first_n=1):
-    """
-    Carica tutti i file di output 'vmstat -n 1 <durata>' in vmstat_dir e li concatena
-    in un unico DataFrame, taggando ogni riga con 'rate' e 'rep' (stesso schema di
-    load_all_runs).
-
-    Le prime due righe di ogni file sono intestazioni testuali di vmstat (non dati) e
-    vengono saltate. Il primo campione dati di vmstat riporta spesso medie "da boot"
-    poco significative per il test in corso: skip_first_n=1 scarta anche quello di
-    default, cosi' si parte dal primo campione realmente relativo alla finestra di test.
-    """
+    """Carica i dump testuali di vmstat saltando l'intestazione e il primo campione."""
     filename_re = re.compile(filename_pattern)
     frames = []
 
@@ -124,7 +87,7 @@ def load_all_vmstat(vmstat_dir, filename_pattern=r"vmstat_(\d+)(?:_(\d+))?\.txt$
     for path in sorted(glob.glob(search_pattern)):
         match = filename_re.search(path)
         if not match:
-            print(f"[WARN] file vmstat ignorato (nome non conforme): {path}")
+            print(f"[WARN] File vmstat ignorato: {path}")
             continue
 
         rate = int(match.group(1))
@@ -134,15 +97,14 @@ def load_all_vmstat(vmstat_dir, filename_pattern=r"vmstat_(\d+)(?:_(\d+))?\.txt$
             lines = f.readlines()
 
         rows = []
-        for line in lines[2:]:  # salta le 2 righe di intestazione di vmstat
+        for line in lines[2:]:
             parts = line.split()
             if len(parts) != len(VMSTAT_COLUMNS):
-                continue  # riga vuota o malformata, la saltiamo
+                continue
             rows.append([int(x) for x in parts])
 
         rows = rows[skip_first_n:]
         if not rows:
-            print(f"[WARN] nessun campione utile in {path} dopo lo skip iniziale")
             continue
 
         vdf = pd.DataFrame(rows, columns=VMSTAT_COLUMNS)
@@ -151,45 +113,54 @@ def load_all_vmstat(vmstat_dir, filename_pattern=r"vmstat_(\d+)(?:_(\d+))?\.txt$
         frames.append(vdf)
 
     if not frames:
-        raise FileNotFoundError(
-            f"Nessun file vmstat trovato in '{vmstat_dir}' che rispetti lo schema "
-            f"'vmstat_<rate>.txt' o 'vmstat_<rate>_<rep>.txt'"
-        )
+        raise FileNotFoundError(f"Nessun file vmstat trovato in '{vmstat_dir}'")
 
     return pd.concat(frames, ignore_index=True)
 
 
 def aggregate_vmstat_by_load(vmstat_df):
-    """
-    Calcola, per ogni rate, l'uso medio di CPU, memoria e IO durante il test.
+    """Normalizza e calcola la media di medie per tutte le risorse monitorate da vmstat."""
+    df = vmstat_df.copy()
 
-    - cpu_busy: us + sy (tempo CPU in user space + system/kernel space), il
-      complementare "utile" di id (idle) e wa (attesa IO).
-    - mem_free: memoria libera media (KB), utile per vedere se il server va sotto
-      pressione di memoria all'aumentare del carico.
-    - io_bi / io_bo: blocchi letti/scritti al secondo, media sul periodo.
-    """
-    vmstat_df = vmstat_df.copy()
-    vmstat_df["cpu_busy"] = vmstat_df["us"] + vmstat_df["sy"]
+    # 1. Metriche CPU (valori nativi già in %)
+    df["cpu_us"] = df["us"]
+    df["cpu_sy"] = df["sy"]
+    df["cpu_wa"] = df["wa"]
+    df["cpu_id"] = df["id"]
+    df["cpu_st"] = df["st"]
 
-    summary = vmstat_df.groupby("rate").agg(
-        cpu_busy_mean=("cpu_busy", "mean"),
-        cpu_idle_mean=("id", "mean"),
-        cpu_iowait_mean=("wa", "mean"),
-        mem_free_mean=("free", "mean"),
-        mem_cache_mean=("cache", "mean"),
-        io_bi_mean=("bi", "mean"),
-        io_bo_mean=("bo", "mean"),
-    )
+    # 2. Metriche Memoria (percentuale rispetto alla RAM totale osservata)
+    mem_total = df["free"] + df["buff"] + df["cache"] + df["swpd"]
+    df["mem_free_pct"] = (df["free"] / mem_total) * 100.0
+    df["mem_buff_pct"] = (df["buff"] / mem_total) * 100.0
+    df["mem_cache_pct"] = (df["cache"] / mem_total) * 100.0
+    df["mem_swpd_pct"] = (df["swpd"] / mem_total) * 100.0
+
+    # 3. Media per singola replica (rate, rep) sui valori grezzi
+    metrics_raw = [
+        "cpu_us", "cpu_sy", "cpu_wa", "cpu_id", "cpu_st",
+        "mem_free_pct", "mem_buff_pct", "mem_cache_pct", "mem_swpd_pct",
+        "bi", "bo", "cs", "in", "r"
+    ]
+    per_run = df.groupby(["rate", "rep"])[metrics_raw].mean()
+
+    # 4. Media di medie tra le repliche per ogni livello di carico
+    summary = per_run.groupby("rate").mean()
+
+    # 5. Normalizzazione percentualizzata (0-100%) basata sulla media più alta tra i rate
+    # Questo evita l'appiattimento dovuto a spike isolati di un secondo
+    for col in ["bi", "bo", "cs", "in", "r"]:
+        col_max = summary[col].max()
+        summary[f"{col}_pct"] = (summary[col] / col_max * 100.0) if col_max > 0 else 0.0
 
     return summary.sort_index()
 
 
-def plot_metric(summary, column, ylabel, title, output_path):
-    """Disegna column vs il carico (indice di summary, cioe' 'rate') e salva su file."""
-    plt.figure(figsize=(7, 5))
-    plt.plot(summary.index, summary[column], marker="o", color="#1f4e79", linewidth=2)
-    plt.xlabel("Load (richieste/min)")
+def plot_single_line(series, title, xlabel, ylabel, output_path, color="#1f4e79", marker="o"):
+    """Traccia un singolo trend scalato dinamicamente sull'asse Y."""
+    plt.figure(figsize=(7, 4.5))
+    plt.plot(series.index, series.values, marker=marker, color=color, linewidth=2)
+    plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.title(title)
     plt.grid(alpha=0.3)
@@ -199,52 +170,177 @@ def plot_metric(summary, column, ylabel, title, output_path):
     print(f"Salvato: {output_path}")
 
 
+def plot_cpu_stacked_area(summary, output_path):
+    """Traccia la ripartizione al 100% della CPU mediante Stacked Area Chart."""
+    x = summary.index
+    y_us = summary["cpu_us"]
+    y_sy = summary["cpu_sy"]
+    y_wa = summary["cpu_wa"]
+    y_id = summary["cpu_id"]
+
+    plt.figure(figsize=(8, 5))
+    plt.stackplot(
+        x, y_us, y_sy, y_wa, y_id,
+        labels=["User (% us)", "System (% sy)", "I/O Wait (% wa)", "Idle (% id)"],
+        colors=["#2ca02c", "#d62728", "#ff7f0e", "#e0e0e0"],
+        alpha=0.85
+    )
+    plt.xlabel("Load (Rate offerto)")
+    plt.ylabel("Allocazione CPU (%)")
+    plt.title("Ripartizione Uso CPU (100% Stacked Area)")
+    plt.xlim(min(x), max(x))
+    plt.ylim(0, 100)
+    plt.grid(axis="x", alpha=0.3, linestyle="--")
+    plt.legend(loc="upper left", bbox_to_anchor=(1.02, 1), frameon=True)
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=150)
+    plt.close()
+    print(f"Salvato: {output_path}")
+
+
+def plot_mem_stacked_area(summary, output_path):
+    """Traccia la ripartizione al 100% della Memoria RAM mediante Stacked Area Chart."""
+    x = summary.index
+    y_free = summary["mem_free_pct"]
+    y_buff = summary["mem_buff_pct"]
+    y_cache = summary["mem_cache_pct"]
+    y_swpd = summary["mem_swpd_pct"]
+
+    plt.figure(figsize=(8, 5))
+    plt.stackplot(
+        x, y_free, y_buff, y_cache, y_swpd,
+        labels=["Free", "Buffers", "Cached", "Swap / Used"],
+        colors=["#1f77b4", "#bcbd22", "#2ca02c", "#d62728"],
+        alpha=0.85
+    )
+    plt.xlabel("Load (Rate offerto)")
+    plt.ylabel("Quota Memoria Totale (%)")
+    plt.title("Ripartizione Memoria RAM (100% Stacked Area)")
+    plt.xlim(min(x), max(x))
+    plt.ylim(0, 100)
+    plt.grid(axis="x", alpha=0.3, linestyle="--")
+    plt.legend(loc="upper left", bbox_to_anchor=(1.02, 1), frameon=True)
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=150)
+    plt.close()
+    print(f"Salvato: {output_path}")
+
+
+def plot_disk_io_real(summary, output_path):
+    """Traccia l'attività I/O disco con valori reali in blocchi/s e scala Y naturale."""
+    plt.figure(figsize=(8, 5))
+    plt.plot(summary.index, summary["bi"], marker="o", label="Blocks In (bi, read)", color="#17becf", linewidth=2)
+    plt.plot(summary.index, summary["bo"], marker="s", label="Blocks Out (bo, write)", color="#9467bd", linewidth=2)
+    plt.xlabel("Load (Rate offerto)")
+    plt.ylabel("Blocchi / secondo (media)")
+    plt.title("Attività Disco I/O vs Carico (Valori Reali)")
+    plt.grid(alpha=0.3)
+    plt.legend(loc="best")
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=150)
+    plt.close()
+    print(f"Salvato: {output_path}")
+
+
+def plot_multi_lines(summary, columns_labels_colors, title, ylabel, output_path, ylim_100=True):
+    """Traccia serie multiple normalizzate sullo stesso grafico."""
+    plt.figure(figsize=(8, 5))
+    for col, label, color, style in columns_labels_colors:
+        if col in summary.columns:
+            plt.plot(
+                summary.index,
+                summary[col],
+                marker="o",
+                label=label,
+                color=color,
+                linestyle=style,
+                linewidth=2,
+            )
+
+    plt.xlabel("Load (Rate offerto)")
+    plt.ylabel(ylabel)
+    plt.title(title)
+    if ylim_100:
+        plt.ylim(0, 105)
+    plt.grid(alpha=0.3)
+    plt.legend(loc="best")
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=150)
+    plt.close()
+    print(f"Salvato: {output_path}")
+
+
 def main(results_dir, test_duration, output_dir, vmstat_dir=None):
     Path(output_dir).mkdir(parents=True, exist_ok=True)
 
+    # 1. Analisi JMeter
     df = load_all_runs(results_dir)
-    summary = aggregate_by_load(df, test_duration)
+    jmeter_summary = aggregate_by_load(df, test_duration)
 
-    print("\n=== Riepilogo per livello di carico (JMeter) ===")
-    print(summary)
-    print()
+    print("\n=== Riepilogo JMeter (Media di Medie) ===")
+    print(jmeter_summary)
 
-    plot_metric(
-        summary, "response_time", "Response Time (ms)",
-        "Response Time vs Load", str(Path(output_dir) / "response_time.png"),
+    plot_single_line(
+        jmeter_summary["response_time"],
+        "Response Time vs Load", "Load (rate)", "Response Time (ms)",
+        str(Path(output_dir) / "response_time.png"),
+        color="#d9534f"
     )
-    plot_metric(
-        summary, "throughput", "Throughput (req/s)",
-        "Throughput vs Load", str(Path(output_dir) / "throughput.png"),
+    plot_single_line(
+        jmeter_summary["throughput"],
+        "Throughput vs Load", "Load (rate)", "Throughput (req/s)",
+        str(Path(output_dir) / "throughput.png"),
+        color="#337ab7", marker="s"
     )
-    plot_metric(
-        summary, "power", "Power",
-        "Power vs Load", str(Path(output_dir) / "power.png"),
+    plot_single_line(
+        jmeter_summary["power"],
+        "Power vs Load (Throughput / RT)", "Load (rate)", "Power",
+        str(Path(output_dir) / "power.png"),
+        color="#5cb85c", marker="^"
     )
 
+    # 2. Analisi vmstat
     if vmstat_dir:
         vmstat_df = load_all_vmstat(vmstat_dir)
         vmstat_summary = aggregate_vmstat_by_load(vmstat_df)
 
-        print("\n=== Riepilogo per livello di carico (vmstat, risorse server) ===")
-        print(vmstat_summary)
-        print()
+        print("\n=== Riepilogo vmstat (Media di Medie) ===")
+        print(vmstat_summary.round(2))
 
-        plot_metric(
-            vmstat_summary, "cpu_busy_mean", "CPU busy (%, us+sy)",
-            "CPU Usage vs Load", str(Path(output_dir) / "cpu_usage.png"),
+        # Grafici Stacked Area (100%)
+        plot_cpu_stacked_area(vmstat_summary, str(Path(output_dir) / "cpu_stacked_area.png"))
+        plot_mem_stacked_area(vmstat_summary, str(Path(output_dir) / "mem_stacked_area.png"))
+
+        # Grafico Disco I/O con scala Y naturale (risolve il problema della linea piatta)
+        plot_disk_io_real(vmstat_summary, str(Path(output_dir) / "disk_io_real.png"))
+
+        # Grafico Disco I/O normalizzato (0-100% sulla media massima, non sui singoli picchi istantanei)
+        io_metrics = [
+            ("bi_pct", "Blocks In (% su media max)", "#17becf", "-"),
+            ("bo_pct", "Blocks Out (% su media max)", "#9467bd", "-"),
+        ]
+        plot_multi_lines(
+            vmstat_summary,
+            io_metrics,
+            "Attività Disco I/O Normalizzata",
+            "% del Massimo Medio",
+            str(Path(output_dir) / "disk_io_normalized.png"),
+            ylim_100=True,
         )
-        plot_metric(
-            vmstat_summary, "mem_free_mean", "Memoria libera (KB)",
-            "Free Memory vs Load", str(Path(output_dir) / "mem_free.png"),
-        )
-        plot_metric(
-            vmstat_summary, "io_bi_mean", "Blocchi in ingresso/s",
-            "Disk I/O (in) vs Load", str(Path(output_dir) / "io_bi.png"),
-        )
-        plot_metric(
-            vmstat_summary, "io_bo_mean", "Blocchi in uscita/s",
-            "Disk I/O (out) vs Load", str(Path(output_dir) / "io_bo.png"),
+
+        # Grafico Overhead di Sistema (Context Switches, Interrupts, Run Queue)
+        system_metrics = [
+            ("cs_pct", "Context Switches (% su max)", "#8c564b", "-"),
+            ("in_pct", "Interrupts (% su max)", "#e377c2", "--"),
+            ("r_pct", "Run Queue r (% su max)", "#e6550d", "-."),
+        ]
+        plot_multi_lines(
+            vmstat_summary,
+            system_metrics,
+            "Overhead di Sistema (Scheduling e Interrupts)",
+            "% del Massimo Medio",
+            str(Path(output_dir) / "system_overhead.png"),
+            ylim_100=True,
         )
 
 

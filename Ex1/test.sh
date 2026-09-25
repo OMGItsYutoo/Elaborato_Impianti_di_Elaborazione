@@ -18,9 +18,6 @@ fi
 mkdir -p jmeter_res
 ssh "root@$ip_server" "mkdir -p vmstat_results"
 
-#TODO:
-#MODIFICARE SCALE DEVONO ESSERE TUTTE NORMALIZZATE IN PERCENTUALE DI VMSTAT
-#AGGIUSTARE IL FATTO CHE FACCIO MEDIA METTENDO INSIEME TUTTI I FILE E FARE MEDIA DI MEDIE
 for rate in $(seq 50000 2500 70000); do
     for i in {1..3}; do
         command="vmstat -n 1 $test_duration > vmstat_results/vmstat_${rate}_${i}.txt"
