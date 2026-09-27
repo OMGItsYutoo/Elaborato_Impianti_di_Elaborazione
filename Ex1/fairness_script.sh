@@ -4,7 +4,7 @@ test_duration=300
 ip_server=192.168.56.104
 
 #rates=(12500 10000 6000 4000 2500)
-rates=(7000 6000 5000 4000 3000)
+rates=(8400 7200 6000 4800 3600)
 
 clean=false
 [ "$1" = "-c" ] && clean=true
