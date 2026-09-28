@@ -3,8 +3,8 @@ Analisi avanzata dei risultati JMeter e metriche multi-variabile vmstat.
 
 Caratteristiche:
   - Media di medie per replica su tutte le metriche (JMeter e vmstat).
-  - Grafico CPU Stacked Area (100%): User, System, I/O Wait, Idle.
-  - Grafico Memoria Stacked Area (100%): Free, Buffers, Cache, Swap/Used.
+    - Grafico CPU a linee: User, System, I/O Wait, Idle.
+    - Grafico Memoria a linee: Free, Buffers, Cache, Swap/Used.
   - Grafico I/O Disco con valori reali in blocchi/s (scala naturale dinamica).
   - Grafico Overhead di Sistema normalizzato (0-100% rispetto alla media max).
 """
@@ -156,10 +156,10 @@ def aggregate_vmstat_by_load(vmstat_df):
     return summary.sort_index()
 
 
-def plot_single_line(series, title, xlabel, ylabel, output_path, color="#1f4e79", marker="o"):
+def plot_single_line(series, title, xlabel, ylabel, output_path, color="#1f4e79"):
     """Traccia un singolo trend scalato dinamicamente sull'asse Y."""
     plt.figure(figsize=(7, 4.5))
-    plt.plot(series.index, series.values, marker=marker, color=color, linewidth=2)
+    plt.plot(series.index, series.values, color=color, linewidth=2)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.title(title)
@@ -170,67 +170,11 @@ def plot_single_line(series, title, xlabel, ylabel, output_path, color="#1f4e79"
     print(f"Salvato: {output_path}")
 
 
-def plot_cpu_stacked_area(summary, output_path):
-    """Traccia la ripartizione al 100% della CPU mediante Stacked Area Chart."""
-    x = summary.index
-    y_us = summary["cpu_us"]
-    y_sy = summary["cpu_sy"]
-    y_wa = summary["cpu_wa"]
-    y_id = summary["cpu_id"]
-
-    plt.figure(figsize=(8, 5))
-    plt.stackplot(
-        x, y_us, y_sy, y_wa, y_id,
-        labels=["User (% us)", "System (% sy)", "I/O Wait (% wa)", "Idle (% id)"],
-        colors=["#2ca02c", "#d62728", "#ff7f0e", "#e0e0e0"],
-        alpha=0.85
-    )
-    plt.xlabel("Load (Rate offerto)")
-    plt.ylabel("Allocazione CPU (%)")
-    plt.title("Ripartizione Uso CPU (100% Stacked Area)")
-    plt.xlim(min(x), max(x))
-    plt.ylim(0, 100)
-    plt.grid(axis="x", alpha=0.3, linestyle="--")
-    plt.legend(loc="upper left", bbox_to_anchor=(1.02, 1), frameon=True)
-    plt.tight_layout()
-    plt.savefig(output_path, dpi=150)
-    plt.close()
-    print(f"Salvato: {output_path}")
-
-
-def plot_mem_stacked_area(summary, output_path):
-    """Traccia la ripartizione al 100% della Memoria RAM mediante Stacked Area Chart."""
-    x = summary.index
-    y_free = summary["mem_free_pct"]
-    y_buff = summary["mem_buff_pct"]
-    y_cache = summary["mem_cache_pct"]
-    y_swpd = summary["mem_swpd_pct"]
-
-    plt.figure(figsize=(8, 5))
-    plt.stackplot(
-        x, y_free, y_buff, y_cache, y_swpd,
-        labels=["Free", "Buffers", "Cached", "Swap / Used"],
-        colors=["#1f77b4", "#bcbd22", "#2ca02c", "#d62728"],
-        alpha=0.85
-    )
-    plt.xlabel("Load (Rate offerto)")
-    plt.ylabel("Quota Memoria Totale (%)")
-    plt.title("Ripartizione Memoria RAM (100% Stacked Area)")
-    plt.xlim(min(x), max(x))
-    plt.ylim(0, 100)
-    plt.grid(axis="x", alpha=0.3, linestyle="--")
-    plt.legend(loc="upper left", bbox_to_anchor=(1.02, 1), frameon=True)
-    plt.tight_layout()
-    plt.savefig(output_path, dpi=150)
-    plt.close()
-    print(f"Salvato: {output_path}")
-
-
 def plot_disk_io_real(summary, output_path):
     """Traccia l'attività I/O disco con valori reali in blocchi/s e scala Y naturale."""
     plt.figure(figsize=(8, 5))
-    plt.plot(summary.index, summary["bi"], marker="o", label="Blocks In (bi, read)", color="#17becf", linewidth=2)
-    plt.plot(summary.index, summary["bo"], marker="s", label="Blocks Out (bo, write)", color="#9467bd", linewidth=2)
+    plt.plot(summary.index, summary["bi"], label="Blocks In (bi, read)", color="#17becf", linewidth=2)
+    plt.plot(summary.index, summary["bo"], label="Blocks Out (bo, write)", color="#9467bd", linewidth=2)
     plt.xlabel("Load (Rate offerto)")
     plt.ylabel("Blocchi / secondo (media)")
     plt.title("Attività Disco I/O vs Carico (Valori Reali)")
@@ -250,7 +194,6 @@ def plot_multi_lines(summary, columns_labels_colors, title, ylabel, output_path,
             plt.plot(
                 summary.index,
                 summary[col],
-                marker="o",
                 label=label,
                 color=color,
                 linestyle=style,
@@ -283,20 +226,17 @@ def main(results_dir, test_duration, output_dir, vmstat_dir=None):
     plot_single_line(
         jmeter_summary["response_time"],
         "Response Time vs Load", "Load (rate)", "Response Time (ms)",
-        str(Path(output_dir) / "response_time.png"),
-        color="#d9534f"
+        str(Path(output_dir) / "response_time.png"), color="#d9534f"
     )
     plot_single_line(
         jmeter_summary["throughput"],
         "Throughput vs Load", "Load (rate)", "Throughput (req/s)",
-        str(Path(output_dir) / "throughput.png"),
-        color="#337ab7", marker="s"
+        str(Path(output_dir) / "throughput.png"), color="#337ab7"
     )
     plot_single_line(
         jmeter_summary["power"],
         "Power vs Load (Throughput / RT)", "Load (rate)", "Power",
-        str(Path(output_dir) / "power.png"),
-        color="#5cb85c", marker="^"
+        str(Path(output_dir) / "power.png"), color="#5cb85c"
     )
 
     # 2. Analisi vmstat
@@ -307,9 +247,36 @@ def main(results_dir, test_duration, output_dir, vmstat_dir=None):
         print("\n=== Riepilogo vmstat (Media di Medie) ===")
         print(vmstat_summary.round(2))
 
-        # Grafici Stacked Area (100%)
-        plot_cpu_stacked_area(vmstat_summary, str(Path(output_dir) / "cpu_stacked_area.png"))
-        plot_mem_stacked_area(vmstat_summary, str(Path(output_dir) / "mem_stacked_area.png"))
+        # Grafici CPU e memoria a linee
+        cpu_metrics = [
+            ("cpu_us", "User (% us)", "#2ca02c", "-"),
+            ("cpu_sy", "System (% sy)", "#d62728", "-"),
+            ("cpu_wa", "I/O Wait (% wa)", "#ff7f0e", "-"),
+            ("cpu_id", "Idle (% id)", "#7f7f7f", "-"),
+        ]
+        plot_multi_lines(
+            vmstat_summary,
+            cpu_metrics,
+            "Uso CPU vs Carico",
+            "Allocazione CPU (%)",
+            str(Path(output_dir) / "cpu_lines.png"),
+            ylim_100=True,
+        )
+
+        memory_metrics = [
+            ("mem_free_pct", "Free", "#1f77b4", "-"),
+            ("mem_buff_pct", "Buffers", "#bcbd22", "-"),
+            ("mem_cache_pct", "Cached", "#2ca02c", "-"),
+            ("mem_swpd_pct", "Swap / Used", "#d62728", "-"),
+        ]
+        plot_multi_lines(
+            vmstat_summary,
+            memory_metrics,
+            "Uso Memoria vs Carico",
+            "Quota Memoria Totale (%)",
+            str(Path(output_dir) / "mem_lines.png"),
+            ylim_100=True,
+        )
 
         # Grafico Disco I/O con scala Y naturale (risolve il problema della linea piatta)
         plot_disk_io_real(vmstat_summary, str(Path(output_dir) / "disk_io_real.png"))
