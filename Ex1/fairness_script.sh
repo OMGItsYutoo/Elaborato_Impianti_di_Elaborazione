@@ -1,6 +1,6 @@
 #!/bin/bash
 
-test_duration=300
+test_duration=600
 ip_server=192.168.56.104
 
 #rates=(12500 10000 6000 4000 2500)
