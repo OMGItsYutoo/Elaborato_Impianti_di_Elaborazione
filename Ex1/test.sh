@@ -3,6 +3,11 @@
 test_duration=300
 ip_server=192.168.56.104
 
+# Aumento il range delle porte locali prima di avviare i test
+echo "Aumento il range delle porte locali..."
+sudo sysctl -w net.ipv4.ip_local_port_range="1024 65535" || { echo "Errore nel configurare il numero di porte locali"; exit 1; }
+
+
 clean=false
 [ "$1" = "-c" ] && clean=true
 
