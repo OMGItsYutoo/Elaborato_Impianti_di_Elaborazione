@@ -1,0 +1,331 @@
+Names Default To Here( 1 );
+
+// ============================================================
+// 1. CONFIGURAZIONE GENERALE E PARAMETRI GRID SEARCH
+// ============================================================
+
+dt_dati = Current Data Table();
+
+// Griglie di esplorazione
+m_array = {4, 5, 6, 7, 8, 9};
+k_array = {3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25};
+
+// Variabili metriche originali
+cols_dati = {
+	"r", "free", "buff", "cache", "bi", "bo",
+	"in", "cs", "us", "sy", "id", "wa"
+};
+
+m_max = Max( m_array );
+
+// Pesi decisionali per la selezione ottima (Distanza Punto Utopia)
+w_varianza = 0.70;    // Peso alla varianza spiegata (Retained [%])
+w_parsimonia = 0.30;  // Peso alla semplicità del modello (K x m)
+
+// ============================================================
+// 2. VERIFICA INTEGRITÀ E PULIZIA PREVENTIVA
+// ============================================================
+
+all_cols_existing = dt_dati << Get Column Names( "String" );
+
+For( i = 1, i <= N Items( cols_dati ), i++,
+	If(
+		!Contains( all_cols_existing, cols_dati[i] ),
+		Throw( "Colonna non trovata nella tabella: " || cols_dati[i] )
+	);
+);
+
+For( i = N Items( all_cols_existing ), i >= 1, i--,
+	col_nm = all_cols_existing[i];
+	If(
+		Starts With( col_nm, "Prin" ) | Starts With( col_nm, "Cluster" ) | Starts With( col_nm, "Hierarchical" ),
+		Try( dt_dati << Delete Columns( col_nm ) )
+	);
+);
+
+// ============================================================
+// 3. MATRICE DATI, STANDARDIZZAZIONE E DEVIANZA TOTALE
+// ============================================================
+
+data = dt_dati << Get As Matrix( cols_dati );
+n_rows = N Row( data );
+n_cols = N Col( data );
+
+If( n_rows < 1, Throw( "La tabella dati è vuota." ) );
+If( m_max > n_cols, Throw( "m_max non può essere maggiore del numero di variabili." ) );
+
+// Standardizzazione Z-score
+mean_data = V Mean( data );
+std_data = V Std( data );
+data_norm = data;
+
+For( j = 1, j <= n_cols, j++,
+	If( Is Missing( std_data[j] ) | std_data[j] <= 0,
+		Throw( "Deviazione standard non valida sulla colonna: " || cols_dati[j] )
+	);
+	data_norm[0, j] = (data[0, j] - mean_data[j]) / std_data[j];
+);
+
+mean_norm = V Mean( data_norm );
+dev_tot = Sum( (data_norm - J( n_rows, 1, 1 ) * mean_norm) ^ 2 );
+
+// ============================================================
+// 4. ESECUZIONE PCA RIGOROSA
+// ============================================================
+
+col_refs = {};
+For( i = 1, i <= N Items( cols_dati ), i++,
+	Insert Into( col_refs, Column( dt_dati, cols_dati[i] ) );
+);
+
+cols_before = dt_dati << Get Column Names( "String" );
+
+pca_obj = dt_dati << Principal Components(
+	Y( Eval( col_refs ) ),
+	Standardize( "On" )
+);
+
+pca_obj << Save Principal Components( m_max );
+pca_obj << Close Window;
+
+cols_after = dt_dati << Get Column Names( "String" );
+cols_pca_all = {};
+
+For( i = 1, i <= N Items( cols_after ), i++,
+	If( !Contains( cols_before, cols_after[i] ),
+		Insert Into( cols_pca_all, cols_after[i] )
+	);
+);
+
+If( N Items( cols_pca_all ) < m_max,
+	Throw( "Numero insufficiente di colonne PCA create da JMP." )
+);
+
+// ============================================================
+// 5. TABELLA RISULTATI GRID SEARCH
+// ============================================================
+
+dt_res = New Table(
+	"Risultati Grid Search",
+	Add Rows( 0 ),
+	New Column( "m", Numeric, "Nominal" ),
+	New Column( "k", Numeric, "Continuous" ),
+	New Column( "Values kept (K x m)", Numeric, "Continuous" ),
+	New Column( "DEV_PCA", Numeric, "Continuous" ),
+	New Column( "Devianza Inter (B)", Numeric, "Continuous" ),
+	New Column( "Devianza Intra (W)", Numeric, "Continuous" ),
+	New Column( "Check B+W-DEV", Numeric, "Continuous" ),
+	New Column( "Retained [%]", Numeric, "Continuous" ),
+	New Column( "Lost [%]", Numeric, "Continuous" ),
+	New Column( "Distanza Utopia", Numeric, "Continuous" )
+);
+
+// ============================================================
+// 6. ESECUZIONE GRID SEARCH (PCA + WARD)
+// ============================================================
+
+For( i_m = 1, i_m <= N Items( m_array ), i_m++,
+
+	m_val = m_array[i_m];
+
+	cols_pca_current = {};
+	For( i = 1, i <= m_val, i++,
+		Insert Into( cols_pca_current, cols_pca_all[i] )
+	);
+
+	pca_data = dt_dati << Get As Matrix( cols_pca_current );
+	mean_pca_global = V Mean( pca_data );
+	pca_centered = pca_data - J( N Row( pca_data ), 1, 1 ) * mean_pca_global;
+	dev_pca = Sum( pca_centered ^ 2 );
+
+	pca_col_refs = {};
+	For( i = 1, i <= m_val, i++,
+		Insert Into( pca_col_refs, Column( dt_dati, cols_pca_current[i] ) );
+	);
+
+	hc_obj = dt_dati << Hierarchical Cluster(
+		Y( Eval( pca_col_refs ) ),
+		Method( "Ward" )
+	);
+
+	For( i_k = 1, i_k <= N Items( k_array ), i_k++,
+
+		k_val = k_array[i_k];
+
+		cols_pre_cluster = dt_dati << Get Column Names( "String" );
+
+		hc_obj << Number of Clusters( k_val );
+		hc_obj << Save Clusters;
+
+		cols_post_cluster = dt_dati << Get Column Names( "String" );
+
+		new_cluster_cols = {};
+		For( c = 1, c <= N Items( cols_post_cluster ), c++,
+			If( !Contains( cols_pre_cluster, cols_post_cluster[c] ),
+				Insert Into( new_cluster_cols, cols_post_cluster[c] )
+			);
+		);
+
+		If( N Items( new_cluster_cols ) != 1,
+			Throw( "Impossibile individuare la colonna dei cluster per k=" || Char( k_val ) )
+		);
+
+		col_cluster_name = new_cluster_cols[1];
+		cluster_data = Column( dt_dati, col_cluster_name ) << Get As Matrix;
+
+		W_tot = 0; 
+		B_tot = 0;
+
+		cluster_vals = Associative Array( cluster_data ) << Get Keys;
+
+		For( j = 1, j <= N Items( cluster_vals ), j++,
+			c_val = If( Is String( cluster_vals[j] ), Num( cluster_vals[j] ), cluster_vals[j] );
+			index = Loc( cluster_data == c_val );
+			n_ele = N Row( index );
+			If( n_ele > 0,
+				pca_subset = pca_data[index, 0];
+				centroid = V Mean( pca_subset );
+				subset_centered = pca_subset - J( n_ele, 1, 1 ) * centroid;
+				W_tot = W_tot + Sum( subset_centered ^ 2 );
+				centroid_diff = centroid - mean_pca_global;
+				B_tot = B_tot + n_ele * Sum( centroid_diff ^ 2 );
+			);
+		);
+
+		check_deviance = B_tot + W_tot - dev_pca;
+		retained_perc = 100 * (B_tot / dev_tot);
+		lost_perc = 100 * ((dev_tot - B_tot) / dev_tot);
+
+		dt_res << Add Rows( 1 );
+		r = N Rows( dt_res );
+
+		dt_res:m[r] = m_val;
+		dt_res:k[r] = k_val;
+		dt_res:Name( "Values kept (K x m)" )[r] = k_val * m_val;
+		dt_res:Name( "DEV_PCA" )[r] = Round( dev_pca, 4 );
+		dt_res:Name( "Devianza Inter (B)" )[r] = Round( B_tot, 4 );
+		dt_res:Name( "Devianza Intra (W)" )[r] = Round( W_tot, 4 );
+		dt_res:Name( "Check B+W-DEV" )[r] = Round( check_deviance, 6 );
+		dt_res:Name( "Retained [%]" )[r] = Round( retained_perc, 2 );
+		dt_res:Name( "Lost [%]" )[r] = Round( lost_perc, 2 );
+
+		dt_dati << Delete Columns( col_cluster_name );
+	);
+
+	hc_obj << Close Window;
+);
+
+dt_dati << Delete Columns( cols_pca_all );
+
+// ============================================================
+// 7. CALCOLO TRADE-OFF (DISTANZA PUNTO UTOPIA)
+// ============================================================
+
+v_retained = dt_res:Name( "Retained [%]" ) << Get As Matrix;
+v_params   = dt_res:Name( "Values kept (K x m)" ) << Get As Matrix;
+
+min_ret = Min( v_retained ); max_ret = Max( v_retained );
+min_par = Min( v_params );   max_par = Max( v_params );
+
+n_runs = N Rows( dt_res );
+
+For( r = 1, r <= n_runs, r++,
+	r_norm = If( max_ret > min_ret, (v_retained[r] - min_ret) / (max_ret - min_ret), 1 );
+	c_norm = If( max_par > min_par, (v_params[r] - min_par) / (max_par - min_par), 0 );
+
+	dist = Sqrt( w_varianza * ((1 - r_norm) ^ 2) + w_parsimonia * (c_norm ^ 2) );
+	dt_res:Name( "Distanza Utopia" )[r] = Round( dist, 4 );
+);
+
+v_dist = dt_res:Name( "Distanza Utopia" ) << Get As Matrix;
+min_pos = Loc Min( v_dist );
+If( Is Matrix( min_pos ), min_pos = min_pos[1] );
+
+best_m        = dt_res:m[min_pos];
+best_k        = dt_res:k[min_pos];
+best_kept     = dt_res:Name( "Values kept (K x m)" )[min_pos];
+best_retained = dt_res:Name( "Retained [%]" )[min_pos];
+best_lost     = dt_res:Name( "Lost [%]" )[min_pos];
+best_dev_pca  = dt_res:Name( "DEV_PCA" )[min_pos];
+best_b        = dt_res:Name( "Devianza Inter (B)" )[min_pos];
+best_w        = dt_res:Name( "Devianza Intra (W)" )[min_pos];
+best_dist     = dt_res:Name( "Distanza Utopia" )[min_pos];
+
+// ============================================================
+// 8. CONFIGURAZIONE ETICHETTE K E LEGENDA SINGOLA
+// ============================================================
+
+// 1. Assegnazione formale del ruolo Label alla colonna k
+dt_res << Clear Row States;
+Column( dt_res, "k" ) << Label( 1 );
+
+// 2. Attivazione dello stato Labeled su tutte le righe della tabella
+For Each Row( dt_res,
+	Row State() = Labeled State( 1 )
+);
+
+// 3. Calcolo posizioni per nascondere i duplicati dei punti dalla legenda
+n_m = N Items( m_array );
+hide_points_pos = {};
+For( i = 0, i < n_m, i++,
+	Insert Into( hide_points_pos, Eval List( {n_m + i, -1} ) );
+);
+
+// 4. Creazione Graph Builder dinamico
+gb_expr = Expr(
+	dt_res << Graph Builder(
+		Size( 850, 420 ),
+		Show Control Panel( 0 ),
+		Variables( 
+			X( :Name( "Values kept (K x m)" ) ), 
+			Y( :Name( "Retained [%]" ) ), 
+			Overlay( :m ) 
+		),
+		Elements( 
+			Line( X, Y, Legend( 1 ) ),
+			Points( X, Y, Legend( 2 ), Label( "Label by Row" ) )
+		),
+		SendToReport(
+			Dispatch( {}, "Values kept (K x m)", ScaleBox, {Min( 0 ), Inc( 50 ), Minor Ticks( 1 )} ),
+			Dispatch( {}, "Retained [%]", ScaleBox, {Min( 0 ), Max( 100 ), Inc( 20 ), Minor Ticks( 1 )} ),
+			Dispatch( {}, "400", LegendBox, {Position( _POS_LIST_ )} )
+		)
+	)
+);
+
+gb_report = Eval( Substitute( Name Expr( gb_expr ), Expr( _POS_LIST_ ), hide_points_pos ) ) << Report;
+
+// ============================================================
+// 9. FINESTRA UNIFICATA DASHBOARD
+// ============================================================
+
+New Window( "Dashboard Completa: PCA & Clustering Grid Search",
+	V List Box(
+		Outline Box( "Sintesi Metodologica e Trade-Off Pesato Ottimale",
+			V List Box(
+				Text Box( "Devianza Totale Dataset di Origine (DEV_TOT): " || Char( Round( dev_tot, 4 ) ) ),
+				Text Box( "Numero Totale di Configurazioni Testate: " || Char( n_runs ) ),
+				Text Box( "Pesi di Ottimizzazione: Varianza = " || Char( w_varianza * 100 ) || "%, Parsimonia = " || Char( w_parsimonia * 100 ) || "%" ),
+				Spacer Box( Size( 1, 10 ) ),
+				Text Box( "🎯 CONFIGURAZIONE OTTIMALE IDENTIFICATA (Gomito di Pareto):", << Set Font Style( "Bold" ) ),
+				Text Box( " • Componenti Principali (m): " || Char( best_m ) ),
+				Text Box( " • Numero Cluster (k): " || Char( best_k ) ),
+				Text Box( " • Complessità Parametrica (k x m): " || Char( best_kept ) || " valori" ),
+				Spacer Box( Size( 1, 4 ) ),
+				Text Box( " • Varianza Ritenuta Complessiva: " || Char( best_retained ) || " %", << Set Font Style( "Bold" ) ),
+				Text Box( " • Varianza Totale Persa: " || Char( best_lost ) || " %" ),
+				Text Box( " • Distanza dal Punto Utopia: " || Char( best_dist ) ),
+				Spacer Box( Size( 1, 4 ) ),
+				Text Box( " • Devianza Inter-Cluster Spiegata (B): " || Char( best_b ) ),
+				Text Box( " • Devianza Intra-Cluster Residua (W): " || Char( best_w ) ),
+				Text Box( " • Devianza Totale Spazio PCA: " || Char( best_dev_pca ) )
+			)
+		),
+		Spacer Box( Size( 1, 10 ) ),
+		Outline Box( "Grafico Retained [%] vs Values Kept (K x m) - I numeri sui punti indicano k",
+			gb_report
+		)
+	)
+);
+
+dt_res << Bring Window To Front;
