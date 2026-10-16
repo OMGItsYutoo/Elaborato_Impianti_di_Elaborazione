@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>root@server ~ %</title>
+<style>
+  :root{
+    --bg: #0d0906;
+    --amber: #ffb000;
+    --amber-dim: #a86e00;
+    --amber-faint: #4a3200;
+    --paper: #1a1208;
+    --red: #ff4d2e;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    background: radial-gradient(ellipse at center, #140d06 0%, #0a0704 100%);
+    color: var(--amber);
+    font-family: "Courier New", "IBM Plex Mono", monospace;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding: 40px 20px;
+    overflow-x:hidden;
+    position:relative;
+  }
+
+  /* CRT scanlines + flicker */
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(0,0,0,0) 0px,
+      rgba(0,0,0,0.15) 1px,
+      rgba(0,0,0,0) 2px
+    );
+    pointer-events:none;
+    z-index:10;
+  }
+  body::after{
+    content:"";
+    position:fixed; inset:0;
+    background: radial-gradient(ellipse at center, rgba(255,176,0,0.05) 0%, rgba(0,0,0,0.35) 100%);
+    pointer-events:none;
+    z-index:9;
+    animation: flicker 6s infinite;
+  }
+  @keyframes flicker{
+    0%,96%,100%{opacity:1;}
+    97%{opacity:0.85;}
+    98%{opacity:1;}
+  }
+
+  .crt{
+    width:100%;
+    max-width:820px;
+    background: var(--paper);
+    border: 1px solid var(--amber-faint);
+    border-radius: 6px;
+    box-shadow:
+      0 0 0 1px rgba(255,176,0,0.08),
+      0 0 40px rgba(255,176,0,0.06),
+      inset 0 0 60px rgba(0,0,0,0.6);
+    padding: 36px 40px 44px;
+    position:relative;
+  }
+
+  .titlebar{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    border-bottom: 1px solid var(--amber-faint);
+    padding-bottom: 14px;
+    margin-bottom: 26px;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    color: var(--amber-dim);
+  }
+  .titlebar .dot{
+    color: var(--red);
+    animation: blink-slow 2.4s infinite;
+  }
+  @keyframes blink-slow{50%{opacity:0.3;}}
+
+  .boot-line{
+    font-size: 13px;
+    line-height: 1.9;
+    color: var(--amber-dim);
+    white-space: pre-wrap;
+  }
+  .boot-line .ok{ color: var(--amber); }
+
+  h1{
+    font-size: clamp(28px, 5vw, 44px);
+    font-weight: 400;
+    letter-spacing: 1px;
+    margin: 28px 0 6px;
+    color: var(--amber);
+    text-shadow: 0 0 14px rgba(255,176,0,0.35);
+  }
+  h1 .cursor{
+    display:inline-block;
+    width: 0.5em;
+    background: var(--amber);
+    animation: blink 1s steps(1) infinite;
+    margin-left: 4px;
+  }
+  @keyframes blink{ 50%{ opacity:0; } }
+
+  .subhead{
+    font-size: 14px;
+    color: var(--amber-dim);
+    margin-bottom: 30px;
+    max-width: 60ch;
+    line-height: 1.6;
+  }
+
+  .stats{
+    display:grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--amber-faint);
+    border: 1px solid var(--amber-faint);
+    margin: 28px 0;
+  }
+  .stat{
+    background: var(--paper);
+    padding: 16px 14px;
+  }
+  .stat .label{
+    font-size: 10px;
+    color: var(--amber-dim);
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .stat .value{
+    font-size: 20px;
+    color: var(--amber);
+  }
+
+  .divider{
+    color: var(--amber-faint);
+    font-size: 12px;
+    margin: 26px 0 18px;
+    letter-spacing: 2px;
+  }
+
+  nav{
+    display:flex;
+    flex-direction:column;
+    gap: 2px;
+  }
+  nav a{
+    color: var(--amber);
+    text-decoration:none;
+    font-size: 14px;
+    padding: 10px 12px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    border-left: 2px solid transparent;
+    transition: border-color 0.15s ease, background 0.15s ease, padding-left 0.15s ease;
+  }
+  nav a:hover{
+    border-left-color: var(--amber);
+    background: rgba(255,176,0,0.05);
+    padding-left: 18px;
+  }
+  nav a .arrow{
+    color: var(--amber-dim);
+  }
+  nav a .path{
+    color: var(--amber-dim);
+    font-size: 12px;
+  }
+
+  footer{
+    margin-top: 34px;
+    padding-top: 18px;
+    border-top: 1px solid var(--amber-faint);
+    font-size: 11px;
+    color: var(--amber-faint);
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap: 8px;
+  }
+  footer .live{
+    color: var(--amber-dim);
+  }
+  footer .live::before{
+    content:"●";
+    color: #5fd75f;
+    margin-right:6px;
+    animation: blink-slow 1.6s infinite;
+  }
+
+  @media (max-width: 560px){
+    .crt{ padding: 26px 20px 30px; }
+    .stats{ grid-template-columns: 1fr; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation: none !important; }
+  }
+
+  nav a:focus-visible, footer a:focus-visible {
+    outline: 1px solid var(--amber);
+    outline-offset: 2px;
+  }
+</style>
+</head>
+<body>
+
+  <div class="crt">
+    <div class="titlebar">
+      <span>SERVER STATUS <span class="dot">●</span> ONLINE</span>
+      <span id="clock">--:--:--</span>
+    </div>
+
+    <div class="boot-line">[  <span class="ok">OK</span>  ] apache2ctl started
+[  <span class="ok">OK</span>  ] httpd.service active (running)
+[  <span class="ok">OK</span>  ] listening on :80</div>
+
+    <h1>welcome<span class="cursor">&nbsp;</span></h1>
+    <p class="subhead">Questa macchina è viva e risponde. Sotto il cofano gira Apache su Arch Linux — il resto è in costruzione.</p>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="label">SERVER</div>
+        <div class="value">httpd/2.4</div>
+      </div>
+      <div class="stat">
+        <div class="label">OS</div>
+        <div class="value">Arch Linux</div>
+      </div>
+      <div class="stat">
+        <div class="label">UPTIME</div>
+        <div class="value" id="uptime">00:00:00</div>
+      </div>
+    </div>
+
+    <div class="divider">// ROUTE TABLE</div>
+
+    <nav>
+      <a href="#"><span>status<span class="path"> — diagnostica del server</span></span><span class="arrow">$</span></a>
+      <a href="#"><span>projects<span class="path"> — lab, progetti, esperimenti</span></span><span class="arrow">$</span></a>
+      <a href="#"><span>contact<span class="path"> — scrivimi</span></span><span class="arrow">$</span></a>
+    </nav>
+
+    <footer>
+      <span class="live">connessione stabilita</span>
+      <span id="datestamp">--</span>
+    </footer>
+  </div>
+
+<script>
+  function pad(n){ return n.toString().padStart(2,'0'); }
+
+  function updateClock(){
+    const d = new Date();
+    document.getElementById('clock').textContent =
+      pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());
+    document.getElementById('datestamp').textContent =
+      d.toLocaleDateString('it-IT', { day:'2-digit', month:'short', year:'numeric' });
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  const start = Date.now();
+  function updateUptime(){
+    const s = Math.floor((Date.now()-start)/1000);
+    const hh = pad(Math.floor(s/3600));
+    const mm = pad(Math.floor((s%3600)/60));
+    const ss = pad(s%60);
+    document.getElementById('uptime').textContent = hh+':'+mm+':'+ss;
+  }
+  setInterval(updateUptime, 1000);
+</script>
+
+</body>
+</html>
