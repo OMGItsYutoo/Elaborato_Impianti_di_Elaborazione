@@ -1,6 +1,9 @@
 #!/bin/bash
 
-test_duration=120
+jmeter_duration=600
+vmstat_duration=660
+thread_group_count=5
+
 ip_server=192.168.56.104
 
 #rates=(12500 10000 6000 4000 2500)
@@ -27,7 +30,7 @@ mkdir -p jmeter_ex2_wc
 ssh "root@$ip_server" "mkdir -p vmstat_ex2_wc"
 
 
-command="vmstat -n 1 $(($test_duration*5)) > vmstat_ex2_wc/vmstat.txt"
+command="vmstat -n 5 $(($vmstat_duration/5)) > vmstat_ex2_wc/vmstat.txt"
 
 ssh "root@$ip_server" "reboot"
 until curl --silent --head --fail "http://$ip_server" > /dev/null; do
@@ -37,10 +40,10 @@ done
 
 sleep 10 # Wait a few seconds to ensure the server is fully up and running
 
-echo "-----Running test iteration $i for rate $rate-----"
+echo "-----Running test with real workload-----"
 jmeter -n -t ./test.jmx -l "./jmeter_ex2_wc/results.csv" \
 -Jrate1=${rates[0]} -Jrate2=${rates[1]} -Jrate3=${rates[2]} -Jrate4=${rates[3]} -Jrate5=${rates[4]} \
--Jduration=$test_duration -Jip=$ip_server &
+-Jduration=$((jmeter_duration/thread_group_count)) -Jip=$ip_server &
 
 sleep 60 # Wait for 60 seconds before starting vmstat to ensure that ramp-up period expired
 
