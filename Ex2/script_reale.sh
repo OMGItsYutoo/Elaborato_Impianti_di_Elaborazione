@@ -1,7 +1,7 @@
 #!/bin/bash
 
-jmeter_duration=600
-vmstat_duration=660
+jmeter_duration=660
+vmstat_duration=600
 thread_group_count=5
 
 ip_server=192.168.56.104
