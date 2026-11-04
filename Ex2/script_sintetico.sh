@@ -2,7 +2,7 @@
 
 jmeter_duration=600
 vmstat_duration=660
-thread_group_count=4
+thread_group_count=5
 
 ip_server=192.168.56.104
 
@@ -18,19 +18,19 @@ clean=false
 
 if [ "$clean" = true ]; then
     echo "Pulizia risultati precedenti..."
-    rm -rf vmstat_wc_data_validation
-    rm -rf jmeter_wc_data_validation
-    ssh "root@$ip_server" "rm -rf vmstat_wc_data_validation"
+    rm -rf vmstat_ws
+    rm -rf jmeter_ws
+    ssh "root@$ip_server" "rm -rf vmstat_ws"
     echo "Pulizia completata."
 fi
 
 # ricreo le cartelle in ogni caso (servono anche se non hai passato -c
 # la prima volta che lanci lo script, o se le avevi cancellate a mano)
-mkdir -p jmeter_wc_data_validation
-ssh "root@$ip_server" "mkdir -p vmstat_wc_data_validation"
+mkdir -p jmeter_ws
+ssh "root@$ip_server" "mkdir -p vmstat_ws"
 
 
-command="vmstat -n 5 $(($vmstat_duration/5)) > vmstat_wc_data_validation/vmstat.txt"
+command="vmstat -n 5 $(($vmstat_duration/5)) > vmstat_ws/vmstat.txt"
 
 ssh "root@$ip_server" "reboot"
 until curl --silent --head --fail "http://$ip_server" > /dev/null; do
@@ -41,8 +41,8 @@ done
 sleep 10 # Wait a few seconds to ensure the server is fully up and running
 
 echo "-----Running test with real workload-----"
-jmeter -n -t ./test_sintetico.jmx -l "./jmeter_wc_data_validation/results.csv" \
--Jrate1=${rates[0]} -Jrate2=${rates[1]} -Jrate3=${rates[2]} -Jrate5=${rates[4]} \
+jmeter -n -t ./test_sintetico.jmx -l "./jmeter_ws/results.csv" \
+-Jrate1=${rates[0]} -Jrate2=${rates[1]} -Jrate3=${rates[2]} -Jrate4=${rates[3]} -Jrate5=${rates[4]} \
 -Jduration=$((jmeter_duration/thread_group_count)) -Jip=$ip_server &
 
 sleep 60 # Wait for 60 seconds before starting vmstat to ensure that ramp-up period expired
@@ -52,4 +52,4 @@ ssh "root@$ip_server" "$command" &
 wait
 
 echo "Test completed. Retrieving vmstat results from the server..."
-scp -r root@"$ip_server":/root/vmstat_wc_data_validation .
+scp -r root@"$ip_server":/root/vmstat_ws .
