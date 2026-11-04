@@ -53,3 +53,6 @@ wait
 
 echo "Test completed. Retrieving vmstat results from the server..."
 scp -r root@"$ip_server":/root/vmstat_wr .
+
+echo "Converting vmstat.txt to vmstat.csv..."
+awk 'NR>1 {$1=$1; print}' OFS="," ./vmstat_wr/vmstat.txt > ./vmstat_wr/vmstat.csv
