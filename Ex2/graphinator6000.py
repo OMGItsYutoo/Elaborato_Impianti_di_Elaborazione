@@ -19,8 +19,8 @@ import pandas as pd
 # CONFIGURAZIONE
 # ============================================================
 
-VMSTAT_FILE = "./vmstat_wc_data_validation/vmstat.txt"
-OUTPUT_DIR = "./plots_data_validation"
+VMSTAT_FILE = "./vmstat_ws/vmstat.txt"
+OUTPUT_DIR = "./plot_ws"
 INTERVAL_SEC = 1  # Intervallo di campionamento di vmstat (secondi)
 
 # ============================================================
@@ -107,7 +107,7 @@ def plot_multi_lines_time(df, columns_labels_colors, title, ylabel, output_path,
     for col, label, color, style in columns_labels_colors:
         if col in df.columns:
             plt.plot(
-                df["time_sec"],
+                df["time_sec"]*5,
                 df[col],
                 label=label,
                 color=color,
