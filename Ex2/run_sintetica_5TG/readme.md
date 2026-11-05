@@ -1,1 +1,0 @@
-run fatta a cazzo da me mettendo un cluster a TG4 senza nessun tipo di motivo.
