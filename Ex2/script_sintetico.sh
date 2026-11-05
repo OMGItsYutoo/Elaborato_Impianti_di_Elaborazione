@@ -7,7 +7,8 @@ thread_group_count=5
 ip_server=192.168.56.104
 
 #rates=(12500 10000 6000 4000 2500)
-rates=(15000 20000 25000 20000 15000)
+#rates=(15000 20000 25000 20000 15000)
+rates=(1.5 12506 6527.5 1072 898.5)
 
 # Aumento il range delle porte locali prima di avviare i test
 echo "Aumento il range delle porte locali..."
