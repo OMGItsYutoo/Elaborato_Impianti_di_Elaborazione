@@ -19,8 +19,8 @@ import pandas as pd
 # CONFIGURAZIONE
 # ============================================================
 
-VMSTAT_FILE = "./vmstat_ws/vmstat.txt"
-OUTPUT_DIR = "./plot_ws"
+VMSTAT_FILE = "./vmstat_wr/vmstat.txt"
+OUTPUT_DIR = "./plot_wr"
 INTERVAL_SEC = 1  # Intervallo di campionamento di vmstat (secondi)
 
 # ============================================================
