@@ -1,10 +1,13 @@
 % 1. Carica i dati (assumendo matrici numeriche LL per il reale e LLS per il sintetico)
-LL = readmatrix('vmstat_ex2_wc/vmstat.csv'); LLS = readmatrix('vmstat_wc_data_validation/vmstat.csv');
+LL = readmatrix('vmstat_wr/vmstat.csv'); LLS = readmatrix('vmstat_ws/vmstat.csv');
 
 % 2. Elimina il ramp-up (es. prime K righe, adatta K al tuo test)
-K = 6; % es. primi 30 secondi se campioni ogni 5s
-LL = LL(K+1:end, :);
-LLS = LLS(K+1:end, :);
+%K = 12; % es. primi 30 secondi se campioni ogni 5s
+%LL = LL(K+1:end, :);
+%LLS = LLS(K+1:end, :);
+
+LL = LL(1:2:end, :);
+LLS = LLS(1:2:end, :);
 
 % 3. Scarta le colonne costanti (varianza zero in entrambi i workload)
 valid_cols = (var(LL) > 0) | (var(LLS) > 0);
@@ -12,7 +15,7 @@ LL = LL(:, valid_cols);
 LLS = LLS(:, valid_cols);
 
 % 4. Fissa alpha e la correzione di Bonferroni
-alpha = 0.05;
+alpha = 0.01;
 m = size(LL, 2); % Numero di parametri validi da testare
 alpha_bonf = alpha / m;
 
