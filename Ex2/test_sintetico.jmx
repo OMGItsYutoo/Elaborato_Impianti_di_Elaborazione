@@ -6,9 +6,10 @@
       <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
         <collectionProp name="Arguments.arguments"/>
       </elementProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
     </TestPlan>
     <hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Thread Group 1" enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Thread Group 1">
         <intProp name="ThreadGroup.num_threads">20</intProp>
         <intProp name="ThreadGroup.ramp_time">0</intProp>
         <stringProp name="ThreadGroup.duration">${__P(duration,60)}</stringProp>
@@ -21,14 +22,14 @@
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <RandomController guiclass="RandomControlGui" testclass="RandomController" testname="Random Controller">
+        <RandomController guiclass="RandomControlGui" testclass="RandomController" testname="Random Controller" enabled="true">
           <intProp name="InterleaveControl.style">1</intProp>
         </RandomController>
         <hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="HTTP Request 750kb">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="HTTP Request 150kb">
             <stringProp name="HTTPSampler.domain">${__P(ip,192.168.56.104)}</stringProp>
             <stringProp name="HTTPSampler.port">80</stringProp>
-            <stringProp name="HTTPSampler.path">page_750k.html</stringProp>
+            <stringProp name="HTTPSampler.path">page_150k.html</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
             <stringProp name="HTTPSampler.method">GET</stringProp>
             <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
@@ -58,7 +59,7 @@
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <RandomController guiclass="RandomControlGui" testclass="RandomController" testname="Random Controller">
+        <RandomController guiclass="RandomControlGui" testclass="RandomController" testname="Random Controller" enabled="true">
           <intProp name="InterleaveControl.style">1</intProp>
         </RandomController>
         <hashTree>
@@ -95,7 +96,7 @@
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <RandomController guiclass="RandomControlGui" testclass="RandomController" testname="Random Controller">
+        <RandomController guiclass="RandomControlGui" testclass="RandomController" testname="Random Controller" enabled="true">
           <intProp name="InterleaveControl.style">1</intProp>
         </RandomController>
         <hashTree>
@@ -145,7 +146,7 @@
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <RandomController guiclass="RandomControlGui" testclass="RandomController" testname="Random Controller">
+        <RandomController guiclass="RandomControlGui" testclass="RandomController" testname="Random Controller" enabled="true">
           <intProp name="InterleaveControl.style">1</intProp>
         </RandomController>
         <hashTree>
