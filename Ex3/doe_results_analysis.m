@@ -103,60 +103,38 @@ for r = 1:nResponses
     title(sprintf('%s - Residui vs Predetti', respName));
     grid on;
 
-    % =======================================================
-    % PARTE C: TEST DI SIGNIFICATIVITA' SU TUTTI I 7 TERMINI 
-    % =======================================================
-    % Gruppi per il test di Levene su ciascuno dei 7 termini
-    grpTerms = {
-        findgroups(A), ...
-        findgroups(B), ...
-        findgroups(C), ...
-        findgroups(A, B), ...
-        findgroups(A, C), ...
-        findgroups(B, C), ...
-        findgroups(A, B, C)
-    };
+    % =========================================================================
+    % PARTE C: TEST DI SIGNIFICATIVITA' SU TUTTI I 7 TERMINI (4 CASI TEORIA)
+    % =========================================================================
+    % Test di Levene sui 72 residui raggruppati nelle 24 celle sperimentali (3x4x2)
+    cellGroups = findgroups(A, B, C);
+    p_lev      = vartestn(residui, cellGroups, 'TestType', 'LeveneAbsolute', 'Display', 'off');
+    isHomo     = (p_lev > alpha);
 
-    p_lev_vec    = nan(nTerms, 1);
-    isHomo_vec   = false(nTerms, 1);
-    caso_appunti = strings(nTerms, 1);
-    test_scelto  = strings(nTerms, 1);
-    p_val_final  = nan(nTerms, 1);
+    % Seleziona il vettore dei 7 p-value in base allo scenario (Casi 1-4 degli appunti)
+    if isNormal && isHomo
+        % CASO 1: Normalita' verificata & Omoschedasticita' verificata
+        caso_str    = "Caso 1 (Norm + Omosch)";
+        test_str    = "Parametric ANOVA (F-test)";
+        p_val_final = p_param;
 
-    % Pre-calcola p-value non parametrici (ART-ANOVA) ed eteroschedastici (Welch-James)
-    p_art = art_anova_3way(y, A, B, C);
-    p_wj  = welch_james_3way(y, A, B, C);
+    elseif ~isNormal && isHomo
+        % CASO 2: Normalita' NON verificata & Omoschedasticita' verificata
+        caso_str    = "Caso 2 (Non-Norm + Omosch)";
+        test_str    = "ART-ANOVA (Rank-based)";
+        p_val_final = art_anova_3way(y, A, B, C);
 
-    for k = 1:nTerms
-        % Test di omoschedasticita' di Levene sul raggruppamento del termine k
-        p_lev_vec(k)  = vartestn(y, grpTerms{k}, 'TestType', 'LeveneAbsolute', 'Display', 'off');
-        isHomo        = (p_lev_vec(k) > alpha);
-        isHomo_vec(k) = isHomo;
+    elseif isNormal && ~isHomo
+        % CASO 3: Normalita' verificata & Omoschedasticita' NON verificata
+        caso_str    = "Caso 3 (Norm + Eterosch)";
+        test_str    = "Welch-James Heteroscedastic ANOVA";
+        p_val_final = welch_james_3way(y, A, B, C);
 
-        if isNormal && isHomo
-            % CASO 1: Normalita' verificata & Omoschedasticita' verificata
-            caso_appunti(k) = "Caso 1 (Norm + Omosch)";
-            test_scelto(k)  = "Parametric ANOVA (F-test)";
-            p_val_final(k)  = p_param(k);
-
-        elseif ~isNormal && isHomo
-            % CASO 2: Normalita' NON verificata & Omoschedasticita' verificata
-            caso_appunti(k) = "Caso 2 (Non-Norm + Omosch)";
-            test_scelto(k)  = "ART-ANOVA (Rank-based)";
-            p_val_final(k)  = p_art(k);
-
-        elseif isNormal && ~isHomo
-            % CASO 3: Normalita' verificata & Omoschedasticita' NON verificata
-            caso_appunti(k) = "Caso 3 (Norm + Eterosch)";
-            test_scelto(k)  = "Welch-James Heteroscedastic ANOVA";
-            p_val_final(k)  = p_wj(k);
-
-        else
-            % CASO 4: Nessuna delle due assunzioni verificata
-            caso_appunti(k) = "Caso 4 (Non-Norm + Eterosch)";
-            test_scelto(k)  = "ART-ANOVA (cautela eterosch.)";
-            p_val_final(k)  = p_art(k);
-        end
+    else
+        % CASO 4: Nessuna delle due assunzioni verificata
+        caso_str    = "Caso 4 (Non-Norm + Eterosch)";
+        test_str    = "ART-ANOVA (cautela eterosch.)";
+        p_val_final = art_anova_3way(y, A, B, C);
     end
 
     significativo = (p_val_final <= alpha);
@@ -166,10 +144,10 @@ for r = 1:nResponses
         sources, ...
         Imp_SST, ...
         repmat(isNormal, nTerms, 1), ...
-        p_lev_vec, ...
-        isHomo_vec, ...
-        caso_appunti, ...
-        test_scelto, ...
+        repmat(p_lev, nTerms, 1), ...
+        repmat(isHomo, nTerms, 1), ...
+        repmat(caso_str, nTerms, 1), ...
+        repmat(test_str, nTerms, 1), ...
         p_val_final, ...
         significativo, ...
         'VariableNames', {'Response', 'Termine', 'Importanza_SST_pct', ...
