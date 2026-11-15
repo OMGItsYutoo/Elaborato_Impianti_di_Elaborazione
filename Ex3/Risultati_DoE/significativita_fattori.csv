@@ -1,10 +1,10 @@
 Response,Fattore,Importanza_SST_pct,Residui_Normali,p_Levene,Omoschedastico,Scenario_Teoria,Test_Applicato,p_value,Significativo
-Elapsed,Intensity (CTT),1.45982216873253,0,1.61098538007206e-05,0,Caso 4 (Non-Norm + Eterosch),Kruskal-Wallis (cautela eterosch.),0.517093296415748,0
-Elapsed,Page Size,68.5539765427862,0,1.61098538007206e-05,0,Caso 4 (Non-Norm + Eterosch),Kruskal-Wallis (cautela eterosch.),8.71402345747586e-13,1
-Elapsed,Request Type,9.5756132748603,0,1.61098538007206e-05,0,Caso 4 (Non-Norm + Eterosch),Wilcoxon rank-sum (cautela eterosch.),0.147839735341838,0
-Throughput,Intensity (CTT),41.1937027043547,0,2.86631791819138e-07,0,Caso 4 (Non-Norm + Eterosch),Kruskal-Wallis (cautela eterosch.),2.23225062754834e-07,1
-Throughput,Page Size,36.0710622166177,0,2.86631791819138e-07,0,Caso 4 (Non-Norm + Eterosch),Kruskal-Wallis (cautela eterosch.),2.59548678238956e-06,1
-Throughput,Request Type,1.74577272946448,0,2.86631791819138e-07,0,Caso 4 (Non-Norm + Eterosch),Wilcoxon rank-sum (cautela eterosch.),0.100109970475285,0
-Latency,Intensity (CTT),1.9895925649231,1,0.000191032625084719,0,Caso 3 (Norm + Eterosch),Welch's ANOVA (Heteroscedastic),0.43107637593054,0
-Latency,Page Size,70.5211381394226,1,0.000191032625084719,0,Caso 3 (Norm + Eterosch),Welch's ANOVA (Heteroscedastic),2.09127604122727e-10,1
-Latency,Request Type,7.28785996097191,1,0.000191032625084719,0,Caso 3 (Norm + Eterosch),Welch's ANOVA (Heteroscedastic),0.022748849531776,1
+Elapsed,Intensity (CTT),1.45982216873253,0,1.61098538007206e-05,0,Caso 4 (Non-Norm + Eterosch),"Kruskal-Wallis (cautela eterosch., forte eteroschedasticità può introdurre bias)",0.517093296415748,0
+Elapsed,Page Size,68.5539765427862,0,1.61098538007206e-05,0,Caso 4 (Non-Norm + Eterosch),"Kruskal-Wallis (cautela eterosch., forte eteroschedasticità può introdurre bias)",8.71402345747586e-13,1
+Elapsed,Request Type,9.5756132748603,0,1.61098538007206e-05,0,Caso 4 (Non-Norm + Eterosch),"Wilcoxon rank-sum (cautela eterosch., forte eteroschedasticità può introdurre bias)",0.147839735341838,0
+Throughput,Intensity (CTT),41.1937027043547,0,2.86631791819138e-07,0,Caso 4 (Non-Norm + Eterosch),"Kruskal-Wallis (cautela eterosch., forte eteroschedasticità può introdurre bias)",2.23225062754834e-07,1
+Throughput,Page Size,36.0710622166177,0,2.86631791819138e-07,0,Caso 4 (Non-Norm + Eterosch),"Kruskal-Wallis (cautela eterosch., forte eteroschedasticità può introdurre bias)",2.59548678238956e-06,1
+Throughput,Request Type,1.74577272946448,0,2.86631791819138e-07,0,Caso 4 (Non-Norm + Eterosch),"Wilcoxon rank-sum (cautela eterosch., forte eteroschedasticità può introdurre bias)",0.100109970475285,0
+Latency,Intensity (CTT),1.9895925649231,1,0.000191032625084719,0,Caso 3 (Norm + Eterosch),"Welch's ANOVA (Heteroscedastic)",0.43107637593054,0
+Latency,Page Size,70.5211381394226,1,0.000191032625084719,0,Caso 3 (Norm + Eterosch),"Welch's ANOVA (Heteroscedastic)",2.09127604122727e-10,1
+Latency,Request Type,7.28785996097191,1,0.000191032625084719,0,Caso 3 (Norm + Eterosch),"Welch's ANOVA (Heteroscedastic)",0.022748849531776,1

@@ -6,55 +6,31 @@ REPORT ANALISI DoE (Full Factorial 3x4x2, 3 repliche, N = 72, alpha = 0.05)
 RESPONSE: ELAPSED | SST = 296246.9715 | SSE = 93.4495 (0.03%)
 Diagnostica residui: Shapiro-Wilk p = 3.056e-10 (Normali = 0) | Levene (24 celle) p = 1.611e-05 (Omosch = 0)
 -------------------------------------------------------------------------------------
-Sorgente (Fattori + Interazioni)         | DF |           SS |      %SST |  %Modello
-Intensity (CTT)                          |  2 |    4324.6790 |     1.46% |     1.46%
-Page Size                                |  3 |  203089.0794 |    68.55% |    68.58%
-Request Type                             |  1 |   28367.4643 |     9.58% |     9.58%
-Intensity (CTT):Page Size                |  6 |    6064.5510 |     2.05% |     2.05%
-Intensity (CTT):Request Type             |  2 |     447.6520 |     0.15% |     0.15%
-Page Size:Request Type                   |  3 |   45553.7232 |    15.38% |    15.38%
-Intensity (CTT):Page Size:Request Type   |  6 |    8306.3732 |     2.80% |     2.80%
-
+Sorgente (Fattori + Interazioni)         | DF |           SS |      %SST | Intensity (CTT)                          |  2 |    4324.6790 |     1.46% | Page Size                                |  3 |  203089.0794 |    68.55% | Request Type                             |  1 |   28367.4643 |     9.58% | Intensity (CTT):Page Size                |  6 |    6064.5510 |     2.05% | Intensity (CTT):Request Type             |  2 |     447.6520 |     0.15% | Page Size:Request Type                   |  3 |   45553.7232 |    15.38% | Intensity (CTT):Page Size:Request Type   |  6 |    8306.3732 |     2.80% | 
 Test di significativita' sui fattori principali (Caso 4 (Non-Norm + Eterosch)):
 Fattore            |     %SST | Test Applicato                       |    p-value | Signif.
-Intensity (CTT)    |    1.46% | Kruskal-Wallis (cautela eterosch.)   |     0.5171 | NO
-Page Size          |   68.55% | Kruskal-Wallis (cautela eterosch.)   |  8.714e-13 | SI
-Request Type       |    9.58% | Wilcoxon rank-sum (cautela eterosch.) |     0.1478 | NO
+Intensity (CTT)    |    1.46% | Kruskal-Wallis (cautela eterosch., forte eteroschedasticità può introdurre bias) |     0.5171 | NO
+Page Size          |   68.55% | Kruskal-Wallis (cautela eterosch., forte eteroschedasticità può introdurre bias) |  8.714e-13 | SI
+Request Type       |    9.58% | Wilcoxon rank-sum (cautela eterosch., forte eteroschedasticità può introdurre bias) |     0.1478 | NO
 
 
 -------------------------------------------------------------------------------------
 RESPONSE: THROUGHPUT | SST = 1287006.1176 | SSE = 134.0917 (0.01%)
 Diagnostica residui: Shapiro-Wilk p = 4.759e-14 (Normali = 0) | Levene (24 celle) p = 2.866e-07 (Omosch = 0)
 -------------------------------------------------------------------------------------
-Sorgente (Fattori + Interazioni)         | DF |           SS |      %SST |  %Modello
-Intensity (CTT)                          |  2 |  530165.4739 |    41.19% |    41.20%
-Page Size                                |  3 |  464236.7774 |    36.07% |    36.07%
-Request Type                             |  1 |   22468.2018 |     1.75% |     1.75%
-Intensity (CTT):Page Size                |  6 |  231384.5352 |    17.98% |    17.98%
-Intensity (CTT):Request Type             |  2 |    4106.3917 |     0.32% |     0.32%
-Page Size:Request Type                   |  3 |   22439.6654 |     1.74% |     1.74%
-Intensity (CTT):Page Size:Request Type   |  6 |   12070.9805 |     0.94% |     0.94%
-
+Sorgente (Fattori + Interazioni)         | DF |           SS |      %SST | Intensity (CTT)                          |  2 |  530165.4739 |    41.19% | Page Size                                |  3 |  464236.7774 |    36.07% | Request Type                             |  1 |   22468.2018 |     1.75% | Intensity (CTT):Page Size                |  6 |  231384.5352 |    17.98% | Intensity (CTT):Request Type             |  2 |    4106.3917 |     0.32% | Page Size:Request Type                   |  3 |   22439.6654 |     1.74% | Intensity (CTT):Page Size:Request Type   |  6 |   12070.9805 |     0.94% | 
 Test di significativita' sui fattori principali (Caso 4 (Non-Norm + Eterosch)):
 Fattore            |     %SST | Test Applicato                       |    p-value | Signif.
-Intensity (CTT)    |   41.19% | Kruskal-Wallis (cautela eterosch.)   |  2.232e-07 | SI
-Page Size          |   36.07% | Kruskal-Wallis (cautela eterosch.)   |  2.595e-06 | SI
-Request Type       |    1.75% | Wilcoxon rank-sum (cautela eterosch.) |     0.1001 | NO
+Intensity (CTT)    |   41.19% | Kruskal-Wallis (cautela eterosch., forte eteroschedasticità può introdurre bias) |  2.232e-07 | SI
+Page Size          |   36.07% | Kruskal-Wallis (cautela eterosch., forte eteroschedasticità può introdurre bias) |  2.595e-06 | SI
+Request Type       |    1.75% | Wilcoxon rank-sum (cautela eterosch., forte eteroschedasticità può introdurre bias) |     0.1001 | NO
 
 
 -------------------------------------------------------------------------------------
 RESPONSE: LATENCY | SST = 703.7553 | SSE = 2.0002 (0.28%)
 Diagnostica residui: Shapiro-Wilk p = 0.1053 (Normali = 1) | Levene (24 celle) p = 0.000191 (Omosch = 0)
 -------------------------------------------------------------------------------------
-Sorgente (Fattori + Interazioni)         | DF |           SS |      %SST |  %Modello
-Intensity (CTT)                          |  2 |      14.0019 |     1.99% |     2.00%
-Page Size                                |  3 |     496.2962 |    70.52% |    70.72%
-Request Type                             |  1 |      51.2887 |     7.29% |     7.31%
-Intensity (CTT):Page Size                |  6 |      47.4656 |     6.74% |     6.76%
-Intensity (CTT):Request Type             |  2 |       0.3870 |     0.05% |     0.06%
-Page Size:Request Type                   |  3 |      75.6051 |    10.74% |    10.77%
-Intensity (CTT):Page Size:Request Type   |  6 |      16.7106 |     2.37% |     2.38%
-
+Sorgente (Fattori + Interazioni)         | DF |           SS |      %SST | Intensity (CTT)                          |  2 |      14.0019 |     1.99% | Page Size                                |  3 |     496.2962 |    70.52% | Request Type                             |  1 |      51.2887 |     7.29% | Intensity (CTT):Page Size                |  6 |      47.4656 |     6.74% | Intensity (CTT):Request Type             |  2 |       0.3870 |     0.05% | Page Size:Request Type                   |  3 |      75.6051 |    10.74% | Intensity (CTT):Page Size:Request Type   |  6 |      16.7106 |     2.37% | 
 Test di significativita' sui fattori principali (Caso 3 (Norm + Eterosch)):
 Fattore            |     %SST | Test Applicato                       |    p-value | Signif.
 Intensity (CTT)    |    1.99% | Welch's ANOVA (Heteroscedastic)      |     0.4311 | NO
