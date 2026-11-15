@@ -89,7 +89,7 @@ for r = 1:nResponses
 
     % Test di normalita' (Shapiro-Wilk)
     [h_norm, p_norm, ~] = swtest(residui, 'Alpha', alpha);
-    norm_test_name = "Lilliefors (KSL)";
+    norm_test_name = "Shapiro-Wilk";
     isNormal = (h_norm == 0);
 
     % Test di omoschedasticita' di Levene sui residui rispetto alle 24 celle
