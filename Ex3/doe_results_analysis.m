@@ -1,13 +1,13 @@
 %% ANALISI DoE: IMPORTANZA (FATTORI + INTERAZIONI) E SIGNIFICATIVITA'
 clear; clc; close all;
 
-% 0. Cartella di output per grafici e report
+% Cartella di output per grafici e report
 outputDir = 'Risultati_DoE';
 if ~exist(outputDir, 'dir')
     mkdir(outputDir);
 end
 
-% 1. Carica il dataset completo (72 run = 3x4x2 combinazioni x 3 repliche)
+% Carica il dataset completo (72 run = 3x4x2 combinazioni x 3 repliche)
 opts = detectImportOptions('DoE_72_full_factorial.csv', 'VariableNamingRule', 'preserve');
 T = readtable('DoE_72_full_factorial.csv', opts);
 
@@ -29,7 +29,7 @@ repCounts  = accumarray(cellGroups, 1);
 assert(numel(repCounts) == 24 && all(repCounts == 3), ...
     'Il disegno deve avere esattamente 24 celle con 3 repliche ciascuna.');
 
-% 2. Soglia di significativita' alpha
+% Soglia di significativita' alpha
 alpha = 0.05;
 nResponses = numel(responseNames);
 nFactors   = numel(factorNames);
@@ -52,7 +52,7 @@ fprintf(fid, '==================================================================
 figDiag = figure('Name', 'Diagnostica Residui ANOVA (Normalita'' e Omoschedasticita'')', ...
     'Position', [100, 100, 1200, 800]);
 
-% 3. Ciclo su ogni Response Variable (Elapsed, Throughput, Latency)
+% Ciclo su ogni Response Variable (Elapsed, Throughput, Latency)
 for r = 1:nResponses
     respName = responseNames{r};
     y = T.(respName);
@@ -80,11 +80,9 @@ for r = 1:nResponses
 
     SSE = tbl_aov{end-1, 2};
     SST = tbl_aov{end, 2};
-    SS_model = sum(SS_terms);
 
-    Imp_SST   = 100 * (SS_terms / SST);
-    Imp_Model = 100 * (SS_terms / SS_model);
-    Err_Pct   = 100 * (SSE / SST);
+    Imp_SST   = 100 * (SS_terms/SST);
+    Err_Pct   = 100 * (SSE/SST);
 
     ImpMatrix_SST(:, r) = Imp_SST;
     termLabels = sources;
@@ -94,9 +92,9 @@ for r = 1:nResponses
         upper(respName), SST, Err_Pct);
     fprintf('=========================================================================\n');
 
-    TabImportanza = table(sources, DF_terms, SS_terms, Imp_SST, Imp_Model, F_terms, p_param, ...
+    TabImportanza = table(sources, DF_terms, SS_terms, Imp_SST, F_terms, p_param, ...
         'VariableNames', {'Sorgente', 'DF', 'SS', 'Importanza_SST_pct', ...
-        'Importanza_Modello_pct', 'F_comp', 'p_ANOVA_param'});
+        'F_comp', 'p_ANOVA_param'});
     disp(TabImportanza);
 
     TabImportanzaFull = addvars(TabImportanza, repmat(string(respName), nTerms, 1), ...
@@ -109,12 +107,13 @@ for r = 1:nResponses
     residui = stats_aov.resid;
     y_hat   = y - residui;
 
-    % Test di normalita' (Shapiro-Wilk)
+    % Test di normalita' (Shapiro-Wilk, Non Normali = 0, Normali = 1)
     [h_norm, p_norm, ~] = swtest(residui, 'Alpha', alpha);
     norm_test_name = "Shapiro-Wilk";
     isNormal = (h_norm == 0);
 
-    % Test di omoschedasticita' di Levene sui residui rispetto alle 24 celle
+    % Test di omoschedasticita' di Levene sui residui rispetto alle 24
+    % celle,(Eteroschedastici = 0, Omoschedastici = 1)
     p_lev  = vartestn(residui, cellGroups, 'TestType', 'LeveneAbsolute', 'Display', 'off');
     isHomo = (p_lev > alpha);
 
@@ -167,10 +166,10 @@ for r = 1:nResponses
         else
             caso_vec(f) = "Caso 4 (Non-Norm + Eterosch)";
             if nLevs == 2
-                test_vec(f)    = "Wilcoxon rank-sum (cautela eterosch.)";
+                test_vec(f)    = "Wilcoxon rank-sum (cautela eterosch., forte eteroschedasticità può introdurre bias)"; 
                 p_val_final(f) = ranksum(y(grp == levs{1}), y(grp == levs{2}));
             else
-                test_vec(f)    = "Kruskal-Wallis (cautela eterosch.)";
+                test_vec(f)    = "Kruskal-Wallis (cautela eterosch., forte eteroschedasticità può introdurre bias)";
                 p_val_final(f) = kruskalwallis(y, grp, 'off');
             end
         end
@@ -204,10 +203,10 @@ for r = 1:nResponses
         norm_test_name, p_norm, isNormal, p_lev, isHomo);
     fprintf(fid, '-------------------------------------------------------------------------------------\n');
     fprintf(fid, '%-40s | %2s | %12s | %9s | %9s\n', ...
-        'Sorgente (Fattori + Interazioni)', 'DF', 'SS', '%SST', '%Modello');
+        'Sorgente (Fattori + Interazioni)', 'DF', 'SS', '%SST');
     for k = 1:nTerms
         fprintf(fid, '%-40s | %2d | %12.4f | %8.2f%% | %8.2f%%\n', ...
-            sources(k), DF_terms(k), SS_terms(k), Imp_SST(k), Imp_Model(k));
+            sources(k), DF_terms(k), SS_terms(k), Imp_SST(k));
     end
     fprintf(fid, '\nTest di significativita'' sui fattori principali (%s):\n', caso_vec(1));
     fprintf(fid, '%-18s | %8s | %-36s | %10s | %s\n', ...
