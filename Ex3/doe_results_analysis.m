@@ -1,6 +1,12 @@
 %% ANALISI DoE: IMPORTANZA (FATTORI + INTERAZIONI) E SIGNIFICATIVITA'
 clear; clc; close all;
 
+% 0. Cartella di output per grafici e report
+outputDir = 'Risultati_DoE';
+if ~exist(outputDir, 'dir')
+    mkdir(outputDir);
+end
+
 % 1. Carica il dataset completo (72 run = 3x4x2 combinazioni x 3 repliche)
 opts = detectImportOptions('DoE_72_full_factorial.csv', 'VariableNamingRule', 'preserve');
 T = readtable('DoE_72_full_factorial.csv', opts);
@@ -20,7 +26,8 @@ assert(all(isfinite(T{:, responseNames}), 'all'), 'Valori non finiti nelle rispo
 
 cellGroups = findgroups(T.('Intensity (CTT)'), T.('Page Size'), T.('Request Type'));
 repCounts  = accumarray(cellGroups, 1);
-assert(all(repCounts == 3), 'Il disegno deve avere esattamente 3 repliche per cella.');
+assert(numel(repCounts) == 24 && all(repCounts == 3), ...
+    'Il disegno deve avere esattamente 24 celle con 3 repliche ciascuna.');
 
 % 2. Soglia di significativita' alpha
 alpha = 0.05;
@@ -28,8 +35,19 @@ nResponses = numel(responseNames);
 nFactors   = numel(factorNames);
 nTerms     = 7; % 3 effetti principali + 3 interazioni 2-vie + 1 interazione 3-vie
 
-ImpMatrix_SST = zeros(nTerms, nResponses);
-SummaryFactors = table();
+ImpMatrix_SST   = zeros(nTerms, nResponses);
+SummaryAllTerms = table();
+SummaryFactors  = table();
+
+% Apertura file di report testuale
+reportPath = fullfile(outputDir, 'report_analisi_DoE.txt');
+fid = fopen(reportPath, 'w');
+assert(fid ~= -1, 'Impossibile creare il file di report.');
+cleanupObj = onCleanup(@() fclose(fid));
+
+fprintf(fid, '=====================================================================================\n');
+fprintf(fid, 'REPORT ANALISI DoE (Full Factorial 3x4x2, 3 repliche, N = 72, alpha = %.2f)\n', alpha);
+fprintf(fid, '=====================================================================================\n\n');
 
 figDiag = figure('Name', 'Diagnostica Residui ANOVA (Normalita'' e Omoschedasticita'')', ...
     'Position', [100, 100, 1200, 800]);
@@ -81,6 +99,10 @@ for r = 1:nResponses
         'Importanza_Modello_pct', 'F_comp', 'p_ANOVA_param'});
     disp(TabImportanza);
 
+    TabImportanzaFull = addvars(TabImportanza, repmat(string(respName), nTerms, 1), ...
+        'Before', 1, 'NewVariableNames', 'Response');
+    SummaryAllTerms = [SummaryAllTerms; TabImportanzaFull]; %#ok<AGROW>
+
     % =========================================================================
     % PARTE B: DIAGNOSTICA SUI 72 RESIDUI (NORMALITA' E OMOSCHEDASTICITA')
     % =========================================================================
@@ -105,8 +127,8 @@ for r = 1:nResponses
     subplot(nResponses, 2, (r-1)*2 + 2);
     scatter(y_hat, residui, 35, 'filled');
     yline(0, '--r', 'LineWidth', 1.2);
-    xlabel('Predicted response (\hat{y})');
-    ylabel('Residuals (e_{ijkm})');
+    xlabel('Predicted response ($\hat{y}$)', 'Interpreter', 'latex');
+    ylabel('Residuals ($e_{ijkm}$)', 'Interpreter', 'latex');
     title(sprintf('%s - Residui vs Predetti (Levene p=%.4g)', respName, p_lev));
     grid on;
 
@@ -123,13 +145,11 @@ for r = 1:nResponses
         nLevs = numel(levs);
 
         if isNormal && isHomo
-            % CASO 1: Normalita' verificata & Omoschedasticita' verificata
             caso_vec(f)    = "Caso 1 (Norm + Omosch)";
             test_vec(f)    = "Parametric ANOVA (F-test)";
             p_val_final(f) = p_param(f);
 
         elseif ~isNormal && isHomo
-            % CASO 2: Normalita' NON verificata & Omoschedasticita' verificata
             caso_vec(f) = "Caso 2 (Non-Norm + Omosch)";
             if nLevs == 2
                 test_vec(f)    = "Wilcoxon rank-sum (2 liv.)";
@@ -140,13 +160,11 @@ for r = 1:nResponses
             end
 
         elseif isNormal && ~isHomo
-            % CASO 3: Normalita' verificata & Omoschedasticita' NON verificata
             caso_vec(f)    = "Caso 3 (Norm + Eterosch)";
             test_vec(f)    = "Welch's ANOVA (Heteroscedastic)";
             p_val_final(f) = welch_1way(y, grp);
 
         else
-            % CASO 4: Nessuna delle due assunzioni verificata
             caso_vec(f) = "Caso 4 (Non-Norm + Eterosch)";
             if nLevs == 2
                 test_vec(f)    = "Wilcoxon rank-sum (cautela eterosch.)";
@@ -177,6 +195,29 @@ for r = 1:nResponses
 
     disp(TabSignificativita);
     SummaryFactors = [SummaryFactors; TabSignificativita]; %#ok<AGROW>
+
+    % Scrittura sezione nel file di report
+    fprintf(fid, '-------------------------------------------------------------------------------------\n');
+    fprintf(fid, 'RESPONSE: %s | SST = %.4f | SSE = %.4f (%.2f%%)\n', ...
+        upper(respName), SST, SSE, Err_Pct);
+    fprintf(fid, 'Diagnostica residui: %s p = %.4g (Normali = %d) | Levene (24 celle) p = %.4g (Omosch = %d)\n', ...
+        norm_test_name, p_norm, isNormal, p_lev, isHomo);
+    fprintf(fid, '-------------------------------------------------------------------------------------\n');
+    fprintf(fid, '%-40s | %2s | %12s | %9s | %9s\n', ...
+        'Sorgente (Fattori + Interazioni)', 'DF', 'SS', '%SST', '%Modello');
+    for k = 1:nTerms
+        fprintf(fid, '%-40s | %2d | %12.4f | %8.2f%% | %8.2f%%\n', ...
+            sources(k), DF_terms(k), SS_terms(k), Imp_SST(k), Imp_Model(k));
+    end
+    fprintf(fid, '\nTest di significativita'' sui fattori principali (%s):\n', caso_vec(1));
+    fprintf(fid, '%-18s | %8s | %-36s | %10s | %s\n', ...
+        'Fattore', '%SST', 'Test Applicato', 'p-value', 'Signif.');
+    for f = 1:nFactors
+        if significativo(f), sigStr = 'SI'; else, sigStr = 'NO'; end
+        fprintf(fid, '%-18s | %7.2f%% | %-36s | %10.4g | %s\n', ...
+            factorNames{f}, Imp_SST(f), test_vec(f), p_val_final(f), sigStr);
+    end
+    fprintf(fid, '\n\n');
 end
 
 % =============================================================================
@@ -187,7 +228,7 @@ fprintf('CONFRONTO FINALE IMPORTANZA (%%SST) E SIGNIFICATIVITA'' (alpha = %.2f)\
 fprintf('=========================================================================\n');
 disp(SummaryFactors(:, {'Response', 'Fattore', 'Importanza_SST_pct', 'Test_Applicato', 'p_value', 'Significativo'}));
 
-figure('Name', 'Confronto Importanza Fattori e Interazioni sulle Response Variables', ...
+figImp = figure('Name', 'Confronto Importanza Fattori e Interazioni sulle Response Variables', ...
     'Position', [150, 150, 1050, 500]);
 bar(ImpMatrix_SST);
 set(gca, 'XTick', 1:numel(termLabels), 'XTickLabel', termLabels, 'XTickLabelRotation', 25);
@@ -197,7 +238,18 @@ legend(responseNames, 'Location', 'best');
 grid on;
 
 % =============================================================================
-% HELPER: TEST DI WELCH A 1 FATTORE (CASO 3: NORMALE + ETEROSCHEDASTICO)
+% 5. ESPORTAZIONE GRAFICI E TABELLE CSV
+% =============================================================================
+save_figure(figDiag, fullfile(outputDir, '01_diagnostica_residui'));
+save_figure(figImp,  fullfile(outputDir, '02_confronto_importanza_SST'));
+
+writetable(SummaryAllTerms, fullfile(outputDir, 'importanza_7_termini.csv'));
+writetable(SummaryFactors,  fullfile(outputDir, 'significativita_fattori.csv'));
+
+fprintf('\nFile salvati correttamente nella cartella: %s\n', fullfile(pwd, outputDir));
+
+% =============================================================================
+% HELPER 1: TEST DI WELCH A 1 FATTORE (CASO 3: NORMALE + ETEROSCHEDASTICO)
 % =============================================================================
 function p = welch_1way(y, grp)
     gIdx = findgroups(grp);
@@ -218,4 +270,17 @@ function p = welch_1way(y, grp)
     df1 = k - 1;
     df2 = (k^2 - 1) / (3 * lambda_term);
     p   = 1 - fcdf(F_w, df1, df2);
+end
+
+% =============================================================================
+% HELPER 2: SALVATAGGIO FIGURE IN PNG (300 DPI) E PDF VETTORIALE
+% =============================================================================
+function save_figure(figHandle, basePath)
+    if exist('exportgraphics', 'file') == 2
+        exportgraphics(figHandle, [basePath '.png'], 'Resolution', 300);
+        exportgraphics(figHandle, [basePath '.pdf'], 'ContentType', 'vector');
+    else
+        print(figHandle, [basePath '.png'], '-dpng', '-r300');
+        print(figHandle, [basePath '.pdf'], '-dpdf', '-bestfit');
+    end
 end
