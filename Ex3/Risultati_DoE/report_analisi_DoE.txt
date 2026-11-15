@@ -16,10 +16,10 @@ Page Size:Request Type                   |  3 |   45553.7232 |    15.38%
 Intensity (CTT):Page Size:Request Type   |  6 |    8306.3732 |     2.80%
 
 Test di significativita' sui fattori principali (Caso 4 (Non-Norm + Eterosch)):
-Fattore            |     %SST | Test Applicato                       |    p-value | Signif.
-Intensity (CTT)    |    1.46% | Kruskal-Wallis (cautela eterosch., forte eteroschedasticità può introdurre bias) |     0.5171 | NO
-Page Size          |   68.55% | Kruskal-Wallis (cautela eterosch., forte eteroschedasticità può introdurre bias) |  8.714e-13 | SI
-Request Type       |    9.58% | Wilcoxon rank-sum (cautela eterosch., forte eteroschedasticità può introdurre bias) |     0.1478 | NO
+Fattore            |     %SST | Test Applicato                                                                        |    p-value | Signif.
+Intensity (CTT)    |    1.46% | Kruskal-Wallis (cautela eterosch., forte eteroschedasticità può introdurre bias)      |     0.5171 | NO
+Page Size          |   68.55% | Kruskal-Wallis (cautela eterosch., forte eteroschedasticità può introdurre bias)      |  8.714e-13 | SI
+Request Type       |    9.58% | Wilcoxon rank-sum (cautela eterosch., forte eteroschedasticità può introdurre bias)   |     0.1478 | NO
 
 
 -------------------------------------------------------------------------------------
@@ -36,10 +36,10 @@ Page Size:Request Type                   |  3 |   22439.6654 |     1.74%
 Intensity (CTT):Page Size:Request Type   |  6 |   12070.9805 |     0.94%
 
 Test di significativita' sui fattori principali (Caso 4 (Non-Norm + Eterosch)):
-Fattore            |     %SST | Test Applicato                       |    p-value | Signif.
-Intensity (CTT)    |   41.19% | Kruskal-Wallis (cautela eterosch., forte eteroschedasticità può introdurre bias) |  2.232e-07 | SI
-Page Size          |   36.07% | Kruskal-Wallis (cautela eterosch., forte eteroschedasticità può introdurre bias) |  2.595e-06 | SI
-Request Type       |    1.75% | Wilcoxon rank-sum (cautela eterosch., forte eteroschedasticità può introdurre bias) |     0.1001 | NO
+Fattore            |     %SST | Test Applicato                                                                        |    p-value | Signif.
+Intensity (CTT)    |   41.19% | Kruskal-Wallis (cautela eterosch., forte eteroschedasticità può introdurre bias)      |  2.232e-07 | SI
+Page Size          |   36.07% | Kruskal-Wallis (cautela eterosch., forte eteroschedasticità può introdurre bias)      |  2.595e-06 | SI
+Request Type       |    1.75% | Wilcoxon rank-sum (cautela eterosch., forte eteroschedasticità può introdurre bias)   |     0.1001 | NO
 
 
 -------------------------------------------------------------------------------------

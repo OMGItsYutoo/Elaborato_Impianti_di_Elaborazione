@@ -209,7 +209,7 @@ for r = 1:nResponses
             sources(k), DF_terms(k), SS_terms(k), Imp_SST(k));
     end
     fprintf(fid, '\nTest di significativita'' sui fattori principali (%s):\n', caso_vec(1));
-    fprintf(fid, '%-18s | %8s | %-36s | %10s | %s\n', ...
+    fprintf(fid, '%-18s | %8s | %-85s | %10s | %s\n', ...
         'Fattore', '%SST', 'Test Applicato', 'p-value', 'Signif.');
     for f = 1:nFactors
         if significativo(f), sigStr = 'SI'; else, sigStr = 'NO'; end
