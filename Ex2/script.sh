@@ -43,7 +43,7 @@ sleep 10 # Wait a few seconds to ensure the server is fully up and running
 echo "-----Running test with real workload-----"
 jmeter -n -t ./test.jmx -l "./jmeter_wr/results.csv" \
 -Jrate1=${rates[0]} -Jrate2=${rates[1]} -Jrate3=${rates[2]} -Jrate4=${rates[3]} -Jrate5=${rates[4]} \
--Jduration=$(jmeter_duration) -Jip=$ip_server &
+-Jduration=$jmeter_duration -Jip=$ip_server &
 
 sleep 60 # Wait for 60 seconds before starting vmstat to ensure that ramp-up period expired
 

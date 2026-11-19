@@ -109,7 +109,7 @@
         </ConstantThroughputTimer>
         <hashTree/>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Thread Group 2">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Thread Group 2" enabled="true">
         <intProp name="ThreadGroup.num_threads">20</intProp>
         <intProp name="ThreadGroup.ramp_time">60</intProp>
         <stringProp name="ThreadGroup.duration">${__P(duration,60)}</stringProp>
@@ -211,7 +211,7 @@
         </ConstantThroughputTimer>
         <hashTree/>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Thread Group 3">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Thread Group 3" enabled="true">
         <intProp name="ThreadGroup.num_threads">20</intProp>
         <intProp name="ThreadGroup.ramp_time">60</intProp>
         <stringProp name="ThreadGroup.duration">${__P(duration,60)}</stringProp>
@@ -313,7 +313,7 @@
         </ConstantThroughputTimer>
         <hashTree/>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Thread Group 4">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Thread Group 4" enabled="true">
         <intProp name="ThreadGroup.num_threads">20</intProp>
         <intProp name="ThreadGroup.ramp_time">60</intProp>
         <stringProp name="ThreadGroup.duration">${__P(duration,60)}</stringProp>
@@ -415,7 +415,7 @@
         </ConstantThroughputTimer>
         <hashTree/>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Thread Group 5">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Thread Group 5" enabled="true">
         <intProp name="ThreadGroup.num_threads">20</intProp>
         <intProp name="ThreadGroup.ramp_time">60</intProp>
         <stringProp name="ThreadGroup.duration">${__P(duration,60)}</stringProp>
