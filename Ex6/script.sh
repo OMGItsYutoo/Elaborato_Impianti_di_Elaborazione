@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Configurazione connessione VM
-vm_user="aldo-manzo"
-ip_vm="192.168.122.46"
-remote_dir="/home/aldo-manzo/mini-nbody-master"
-local_dir="./risultati_nbody_vm"
+vm_user="<vm_user>"
+ip_vm="<ip_vm>"
+remote_dir="/home/<vm_user>/mini-nbody-master"
+local_dir="./risultati_nbody_vm_$vm_user"
 
 # Parametri sperimentali
 num_samples=1                           # Numero di campioni indipendenti (n) per carico
