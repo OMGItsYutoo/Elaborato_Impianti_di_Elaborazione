@@ -18,16 +18,16 @@ clean=false
 
 if [ "$clean" = true ]; then
     echo "Pulizia risultati precedenti..."
-    rm -rf vmstat_wr
-    rm -rf jmeter_wr
-    ssh "root@$ip_server" "rm -rf vmstat_wr"
+    rm -rf vmstat_ex2
+    rm -rf jmeter_ex2
+    ssh "root@$ip_server" "rm -rf vmstat_ex2"
     echo "Pulizia completata."
 fi
 
 # ricreo le cartelle in ogni caso (servono anche se non hai passato -c
 # la prima volta che lanci lo script, o se le avevi cancellate a mano)
-mkdir -p jmeter_wr
-ssh "root@$ip_server" "mkdir -p vmstat_wr"
+mkdir -p jmeter_ex2
+ssh "root@$ip_server" "mkdir -p vmstat_ex2"
 
 
 command="vmstat -n 5 $(($vmstat_duration/5)) > vmstat_ex2/vmstat.txt"
@@ -41,7 +41,7 @@ done
 sleep 10 # Wait a few seconds to ensure the server is fully up and running
 
 echo "-----Running test with real workload-----"
-jmeter -n -t ./test.jmx -l "./jmeter_wr/results.csv" \
+jmeter -n -t ./test.jmx -l "./jmeter_ex2/results.csv" \
 -Jrate1=${rates[0]} -Jrate2=${rates[1]} -Jrate3=${rates[2]} -Jrate4=${rates[3]} -Jrate5=${rates[4]} \
 -Jduration=$jmeter_duration -Jip=$ip_server &
 
@@ -52,7 +52,7 @@ ssh "root@$ip_server" "$command" &
 wait
 
 echo "Test completed. Retrieving vmstat results from the server..."
-scp -r root@"$ip_server":/root/vmstat_wr .
+scp -r root@"$ip_server":/root/vmstat_ex2 .
 
 echo "Converting vmstat.txt to vmstat.csv..."
-awk 'NR>1 {$1=$1; print}' OFS="," ./vmstat_ex2/vmstat.txt > ./vmstat_wr/vmstat.csv
+awk 'NR>1 {$1=$1; print}' OFS="," ./vmstat_ex2/vmstat.txt > ./vmstat_ex2/vmstat.csv
