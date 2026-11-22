@@ -1,3 +1,7 @@
+cols_dati = {
+	"r", "b", "free", "buff", "cache", "bi", "bo", "in", "cs", "us", "sy", "id", "wa"
+};
+
 Names Default To Here( 1 );
 
 // ============================================================
