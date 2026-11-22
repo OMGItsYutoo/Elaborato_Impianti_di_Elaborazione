@@ -1,6 +1,6 @@
 #!/bin/bash
 
-jmeter_duration=600
+jmeter_duration=720
 vmstat_duration=600
 thread_group_count=5
 
@@ -19,17 +19,17 @@ if [ "$clean" = true ]; then
     echo "Pulizia risultati precedenti..."
     rm -rf vmstat_ex2
     rm -rf jmeter_ex2
-    ssh "root@$ip_server" "rm -rf ./challenge1/"
+    ssh "root@$ip_server" "rm -rf ./challenge3/"
     echo "Pulizia completata."
 fi
 
 # ricreo le cartelle in ogni caso (servono anche se non hai passato -c
 # la prima volta che lanci lo script, o se le avevi cancellate a mano)
 mkdir -p jmeter_ex2
-ssh "root@$ip_server" "mkdir -p /root/challenge1/vmstat_ex2"
+ssh "root@$ip_server" "mkdir -p /root/challenge3/vmstat_ex2"
 
 
-command="vmstat -n 5 $(($vmstat_duration/5)) > /root/challenge1/vmstat_ex2/vmstat.txt"
+command="vmstat -n 5 $(($vmstat_duration/5)) > /root/challenge3/vmstat_ex2/vmstat.txt"
 
 ssh "root@$ip_server" "reboot"
 
@@ -54,7 +54,7 @@ ssh "root@$ip_server" "$command" &
 wait
 
 echo "Test completed. Retrieving vmstat results from the server..."
-scp -r root@"$ip_server":/root/challenge1/vmstat_ex2 .
+scp -r root@"$ip_server":/root/challenge3/vmstat_ex2 .
 
 echo "Converting vmstat.txt to vmstat.csv..."
 awk 'NR>1 {$1=$1; print}' OFS="," ./vmstat_ex2/vmstat.txt > ./vmstat_ex2/vmstat.csv
