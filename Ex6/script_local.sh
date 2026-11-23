@@ -104,7 +104,7 @@ for ((idx=0; idx<total_runs; idx++)); do
     echo "[$current/$total_runs] Pulizia cache kernel e avvio benchmark (corpi=$n_corpi, reps=$reps)..."
     sync && echo 3 | sudo tee /proc/sys/vm/drop_caches > /dev/null
 
-    sudo nice -n -20 env LC_ALL=C ./launch_nbody.sh -r "$reps" -n "$n_corpi"
+    sudo nice -n -20 env LC_ALL=C ./mini-nbody-master/launch_nbody.sh -r "$reps" -n "$n_corpi"
 
     if [ "$current" -lt "$total_runs" ]; then
         sleep "$cooldown"
