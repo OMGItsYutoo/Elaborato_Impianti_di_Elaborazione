@@ -45,7 +45,7 @@ for n_corpi in "${loads[@]}"; do
         done
 
         # Attesa di stabilizzazione post-boot per evitare transitori di avvio
-        sleep 5
+        sleep 20
 
         echo "VM online. Esecuzione benchmark (corpi=$n_corpi, ripetizioni=$reps)..."
         ssh "$vm_user@$ip_vm" "cd $remote_dir && ./launch_nbody.sh -r $reps -n $n_corpi"
