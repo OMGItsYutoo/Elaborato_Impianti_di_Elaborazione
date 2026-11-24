@@ -1,0 +1,12 @@
+=== METADATI SISTEMA (aldo-manzo-Zenbook-S14) ===
+Data: 2026-11-23T20:09:31+01:00
+Kernel: 7.1.5-070105-generic
+CPU(s):                                  16
+On-line CPU(s) list:                     0-15
+Model name:                              Intel(R) Core(TM) Ultra 9 386H
+Thread(s) per core:                      1
+Core(s) per socket:                      16
+CPU(s) scaling MHz:                      15%
+CPU max MHz:                             5000,0000
+CPU min MHz:                             400,0000
+NUMA node0 CPU(s):                       0-15
