@@ -4,8 +4,8 @@ set -e
 # =======================
 # PARAMETRI SPERIMENTALI 
 # =======================
-num_samples=1        # Numero di campioni indipendenti (n) per carico
-loads=(50000 100000 150000 200000)
+num_samples=5        # Numero di campioni indipendenti (n) per carico
+loads=(25000 50000 100000 150000)
 reps=5
 cooldown=20          # Secondi di pausa a riposo tra un run e l'altro
 
@@ -42,7 +42,7 @@ cleanup() {
         rm -f "$restore_file"
     fi
     powerprofilesctl set balanced 2>/dev/null || true
-    sudo chown -R "$USER:$USER" "$out_dir" risultati_nbody.csv 2>/dev/null || true
+    sudo chown -R "$USER:$USER" "$out_dir" "./mini-nbody-master/risultati_nbody.csv" 2>/dev/null || true
     echo "Ripristino completato."
 }
 trap cleanup EXIT INT TERM
@@ -52,7 +52,7 @@ trap cleanup EXIT INT TERM
 # ==============================================================================
 if [ "$clean" = true ]; then
     echo "Pulizia risultati precedenti..."
-    rm -rf "$out_dir" risultati_nbody.csv
+    rm -rf "$out_dir" "./mini-nbody-master/risultati_nbody.csv"
 fi
 
 mkdir -p "$out_dir"
@@ -104,14 +104,14 @@ for ((idx=0; idx<total_runs; idx++)); do
     echo "[$current/$total_runs] Pulizia cache kernel e avvio benchmark (corpi=$n_corpi, reps=$reps)..."
     sync && echo 3 | sudo tee /proc/sys/vm/drop_caches > /dev/null
 
-    sudo nice -n -20 env LC_ALL=C ./launch_nbody.sh -r "$reps" -n "$n_corpi"
+    sudo nice -n -20 env LC_ALL=C ./mini-nbody-master/launch_nbody.sh -r "$reps" -n "$n_corpi"
 
     if [ "$current" -lt "$total_runs" ]; then
         sleep "$cooldown"
     fi
 done
 
-cp risultati_nbody.csv "$out_dir/risultati_nbody.csv"
+cp "./mini-nbody-master/risultati_nbody.csv" "$out_dir/"
 echo "============================================================"
 echo " Completato! Risultati salvati in $out_dir/risultati_nbody.csv"
 echo "============================================================"

@@ -1,5 +1,0 @@
-cpu,thread,corpi,ripetizioni,mediana_GInt_s,mediana_s_iter
-Intel(R) Core(TM) Ultra 9 386H,2,50000,5,1.337000,1.869841
-Intel(R) Core(TM) Ultra 9 386H,2,100000,5,1.327000,7.533243
-Intel(R) Core(TM) Ultra 9 386H,2,150000,5,1.322000,17.025392
-Intel(R) Core(TM) Ultra 9 386H,2,200000,5,1.319000,30.330207
