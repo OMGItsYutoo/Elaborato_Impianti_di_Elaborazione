@@ -5,7 +5,7 @@ set -e
 # PARAMETRI SPERIMENTALI 
 # =======================
 num_samples=5        # Numero di campioni indipendenti (n) per carico
-loads=(25000 50000 100000 150000)
+loads=(25000 50000 75000 100000)
 reps=5
 cooldown=20          # Secondi di pausa a riposo tra un run e l'altro
 
