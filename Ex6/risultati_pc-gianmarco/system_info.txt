@@ -1,0 +1,12 @@
+=== METADATI SISTEMA (pc-gianmarco) ===
+Data: 2026-11-24T19:15:53+01:00
+Kernel: 7.0.0-44-generic
+CPU(s):                                  22
+On-line CPU(s) list:                     0-21
+Model name:                              Intel(R) Core(TM) Ultra 7 155H
+Thread(s) per core:                      2
+Core(s) per socket:                      16
+CPU(s) scaling MHz:                      38%
+CPU max MHz:                             4800,0000
+CPU min MHz:                             400,0000
+NUMA node0 CPU(s):                       0-21
