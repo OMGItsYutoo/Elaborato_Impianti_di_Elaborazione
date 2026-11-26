@@ -64,8 +64,8 @@ for k = 1:num_carichi
     carico_str{k} = formatta_carico(c);
 
     % --- STEP 1: Verifica della Normalità (Shapiro-Wilk) ---
-    [~, p_sw_1(k)] = swtest(y1, alpha);
-    [~, p_sw_2(k)] = swtest(y2, alpha);
+    [~, p_sw_1(k)] = swtest(y1, 'Alpha', alpha);
+    [~, p_sw_2(k)] = swtest(y2, 'Alpha', alpha);
     is_normal = (p_sw_1(k) >= alpha) && (p_sw_2(k) >= alpha);
 
     % --- Grafico Normal Q-Q affiancato ---

@@ -1,0 +1,5 @@
+Corpi,Test_Usato,Statistica_t_o_z,p_value,Speedup_386H,Esito
+25k,t-test Welch,150.160747604739,1.61847785417336e-40,1.31x,Rigetto H0 (Diff. significativa)
+50k,Mann-Whitney U,5.39649276348458,6.79561512817339e-08,1.32x,Rigetto H0 (Diff. significativa)
+75k,Mann-Whitney U,5.39649276348458,6.79561512817339e-08,1.20x,Rigetto H0 (Diff. significativa)
+100k,t-test pooled,90.3732130400656,5.73092396299682e-46,1.25x,Rigetto H0 (Diff. significativa)
