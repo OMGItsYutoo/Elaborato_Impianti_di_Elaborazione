@@ -90,7 +90,7 @@ for k = 1:num_carichi
     rapporto_sig{k} = sprintf('%.1fx', max(sigma_1(k), sigma_2(k)) / max(min(sigma_1(k), sigma_2(k)), eps));
 
     gruppi = [ones(size(y1)); 2 * ones(size(y2))];
-    p_levene(k) = vartestn([y1; y2], gruppi, 'TestType', 'LeveneAbsolute', 'Display', 'off');
+    p_levene(k) = vartestn([y1; y2], gruppi, 'TestType', 'LeveneAbsolute', 'Display', 'on');
 
     % --- STEP 3: Selezione ed Esecuzione del Test d'Ipotesi ---
     if ~is_normal

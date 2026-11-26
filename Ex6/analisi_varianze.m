@@ -4,8 +4,8 @@ clear; clc; close all;
 % =========================================================================
 % 1. CONFIGURAZIONE FILE E OPZIONI
 % =========================================================================
-file_155H = '../risultati_pc-gianmarco/risultati_nbody.csv';   % CSV Core Ultra 7 155H
-file_386H = 'risultati_nbody.csv';                            % CSV Core Ultra 9 386H
+file_155H = 'risultati_pc-gianmarco/risultati_nbody.csv';   % CSV Core Ultra 7 155H
+file_386H = 'risultati_aldo-manzo-Zenbook-S14/risultati_nbody.csv';                            % CSV Core Ultra 9 386H
 
 label_155H = 'Core Ultra 7 155H';
 label_386H = 'Core Ultra 9 386H';
