@@ -99,7 +99,7 @@ for k = 1:num_carichi
     hold(ax1, 'off');
     xlabel(ax1, sprintf('Tempo (%s)', unita_lbl), 'FontSize', 10.5);
     ylabel(ax1, 'Densità di probabilità', 'FontSize', 10.5);
-    title(ax1, 'Confronto larghezza distribuzioni \mathcal{N}(\mu, \sigma^2)', 'FontSize', 11, 'FontWeight', 'bold');
+    title(ax1, 'Confronto larghezza distribuzioni $\mathcal{N}(\mu, \sigma^2)$', 'Interpreter', 'latex', 'FontSize', 11, 'FontWeight', 'bold');
     legend(ax1, 'Location', 'best', 'FontSize', 9);
     stila_assi(ax1);
 
@@ -130,7 +130,7 @@ for k = 1:num_carichi
     sgtitle(t, sprintf('Analisi Varianze — %s corpi  [%s]', etichetta_carico, verdetto), ...
             'FontSize', 12, 'FontWeight', 'bold');
 
-    nome_file = sprintf('varianze_%s_corpi.png', etichetta_carico);
+    nome_file = sprintf('./pictures/varianze_%s_corpi.png', etichetta_carico);
     exportgraphics(fig, nome_file, 'Resolution', 300);
     fprintf('Carico %s -> Salvato: %s (%s)\n', etichetta_carico, nome_file, verdetto);
 end
@@ -173,8 +173,8 @@ end
 ylim(ax_r, [0, max(rapporto_vec)*1.22]);
 stila_assi(ax_r);
 
-exportgraphics(fig_trend, 'andamento_sigma_carichi.png', 'Resolution', 300);
-fprintf('Salvato: andamento_sigma_carichi.png\n');
+exportgraphics(fig_trend, './pictures/andamento_sigma_carichi.png', 'Resolution', 300);
+fprintf('Salvato: ./pictures/andamento_sigma_carichi.png\n');
 
 % =========================================================================
 % FUNZIONI DI SUPPORTO
